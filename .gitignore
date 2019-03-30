@@ -1,5 +1,5 @@
 # File
-.idea
+/.idea
 
 # Binaries for programs and plugins
 *.exe
@@ -13,3 +13,11 @@
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+/tmp
+/build
+/_vendor*
+/vendor
+/.image
+*.log
+/dist
+.cover
