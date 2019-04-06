@@ -24,6 +24,8 @@ import (
 )
 
 var cfgFile string
+var exportFile string
+var ciConfigFile string
 
 
 // rootCmd represents the base command when called without any subcommands
@@ -57,6 +59,10 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
+	rootCmd.Flags().StringVarP(&exportFile, "json", "j", "", "Skip the interactive TUI and write the layer analysis statistics to a given file.")
+	rootCmd.Flags().StringVar(&ciConfigFile, "ci-config", ".LGM-ci", "If CI=true in the environment, use the given yaml to drive validation rules.")
+
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -83,4 +89,10 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
+}
+
+// initLogging 使用格式化程序和位置设置日志对象
+// Todo
+func initLogging()  {
+	
 }
