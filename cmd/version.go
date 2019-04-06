@@ -20,6 +20,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type Version struct {
+	Version   string
+	Commit    string
+	BuildTime string
+}
+
+var version *Version
+
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
 	Use:   "version",
@@ -41,4 +49,12 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// versionCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func SetVersion(v *Version)  {
+	version = v
+}
+
+func PrintVersion(cmd *cobra.Command, args []string) {
+	fmt.Printf("LGM %v\n", version.Version)
 }

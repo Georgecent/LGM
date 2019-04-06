@@ -14,6 +14,19 @@
 
 package cmd
 
-func doAnalyzeCmd()  {
-	
+import (
+	"LGM/utils"
+	"github.com/spf13/cobra"
+)
+
+// doAnalyzeCmd 获取docker镜像tag、摘要或id，并将图像分析显示在屏幕上
+func doAnalyzeCmd(cmd *cobra.Command, args []string)  {
+	defer utils.CleanUp()
+	if len(args) == 0 {
+		// PersistentFlags返回在当前命令中专门设置的持久FlagSet。
+		printVersionFlag, err := cmd.PersistentFlags().GetBool("version")
+		if err == nil && printVersionFlag {
+
+		}
+	}
 }
