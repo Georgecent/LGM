@@ -1,6 +1,8 @@
 # File
 /.idea
 
+*.sh
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
