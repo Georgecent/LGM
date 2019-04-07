@@ -16,11 +16,13 @@ package cmd
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	log "github.com/sirupsen/logrus"
 )
 
 var cfgFile string
@@ -94,5 +96,30 @@ func initConfig() {
 // initLogging 使用格式化程序和位置设置日志对象
 // Todo
 func initLogging()  {
-	
+	var logFileObj *os.File
+	var err error
+
+	if viper.GetBool("log.enabled"){
+		logFileObj, err = os.OpenFile(viper.GetString("log.path"), os.O_WRONLY | os.O_APPEND | os.O_CREATE, 0644)
+	}else {
+		// Discard 是一个io.Writer 接口，调用它的Write 方法将不做任何事情  并且始终成功返回。
+		log.SetOutput(ioutil.Discard)
+	}
+
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
+
+	Formatter := new(log.TextFormatter)
+	Formatter.DisableTimestamp = true
+	log.SetFormatter(Formatter)
+
+	level, err := log.ParseLevel(viper.GetString("log.level"))
+	if err != nil{
+		fmt.Fprintln(os.Stderr, err)
+	}
+
+	log.SetLevel(level)
+	log.SetOutput(logFileObj)
+	log.Debug("Starting LGM...")
 }
