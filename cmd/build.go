@@ -15,8 +15,8 @@
 package cmd
 
 import (
-	"fmt"
-
+	"LGM/runtime"
+	"LGM/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -24,9 +24,7 @@ import (
 var buildCmd = &cobra.Command{
 	Use:   "build [any valid 'docker build' arguments]",
 	Short: "Builds and analyzes a docker image from a Dockerfile (this is a thin wrapper for the 'docker build' command).",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("build called")
-	},
+	Run: doBuildCmd,
 }
 
 func init() {
@@ -41,4 +39,15 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// buildCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func doBuildCmd(cmd *cobra.Command, args []string) {
+	defer utils.CleanUp()
+
+	initLogging()
+
+	runtime.Run(runtime.Options{
+		BuildArgs:  args,
+		ExportFile: exportFile,
+	})
 }

@@ -15,9 +15,12 @@
 package cmd
 
 import (
+	"LGM/utils"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
+	"strings"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -38,7 +41,8 @@ var rootCmd = &cobra.Command{
 It is mainly used to mine Docker images, analyze layer content, and help reduce the size of Docker images.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	//	Run: func(cmd *cobra.Command, args []string) { },
+	Args: cobra.MaximumNArgs(1),
+	Run:  doAnalyzeCmd,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -69,21 +73,37 @@ func init() {
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	if cfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
-	} else {
-		// Find home directory.
-		home, err := homedir.Dir()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
+	filepathToCfg := getCfgFile(cfgFile)
+	viper.SetConfigFile(filepathToCfg)
 
-		// Search config in home directory with name ".LGM" (without extension).
-		viper.AddConfigPath(home)
-		viper.SetConfigName(".LGM")
-	}
+	viper.SetDefault("log.level", log.InfoLevel.String())
+	viper.SetDefault("log.path", "./LGM.log")
+	viper.SetDefault("log.enabled", true)
+	// keybindings: status view / global
+	viper.SetDefault("keybinding.quit", "ctrl+c")
+	viper.SetDefault("keybinding.toggle-view", "tab")
+	viper.SetDefault("keybinding.filter-files", "ctrl+f, ctrl+slash")
+	// keybindings: layer view
+	viper.SetDefault("keybinding.compare-all", "ctrl+a")
+	viper.SetDefault("keybinding.compare-layer", "ctrl+l")
+	// keybindings: filetree view
+	viper.SetDefault("keybinding.toggle-collapse-dir", "space")
+	viper.SetDefault("keybinding.toggle-collapse-all-dir", "ctrl+space")
+	viper.SetDefault("keybinding.toggle-filetree-attributes", "ctrl+b")
+	viper.SetDefault("keybinding.toggle-added-files", "ctrl+a")
+	viper.SetDefault("keybinding.toggle-removed-files", "ctrl+r")
+	viper.SetDefault("keybinding.toggle-modified-files", "ctrl+m")
+	viper.SetDefault("keybinding.toggle-unchanged-files", "ctrl+u")
+	viper.SetDefault("keybinding.page-up", "pgup")
+	viper.SetDefault("keybinding.page-down", "pgdn")
+
+	viper.SetDefault("diff.hide", "")
+
+	viper.SetDefault("layer.show-aggregated-changes", false)
+
+	viper.SetDefault("filetree.collapse-dir", false)
+	viper.SetDefault("filetree.pane-width", 0.5)
+	viper.SetDefault("filetree.show-attributes", true)
 
 	viper.AutomaticEnv() // read in environment variables that match
 
@@ -91,10 +111,11 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
+
+
 }
 
 // initLogging 使用格式化程序和位置设置日志对象
-// Todo
 func initLogging()  {
 	var logFileObj *os.File
 	var err error
@@ -122,4 +143,52 @@ func initLogging()  {
 	log.SetLevel(level)
 	log.SetOutput(logFileObj)
 	log.Debug("Starting LGM...")
+}
+
+// getCfgFile checks for config file in paths from xdg specs
+// and in $HOME/.config/LGM/ directory
+// defaults to $HOME/.LGM.yaml
+func getCfgFile(fromFlag string) string {
+	if fromFlag != "" {
+		return fromFlag
+	}
+
+	home ,err := homedir.Dir()
+	if err != nil {
+		fmt.Println(err)
+		utils.Exit(0)
+	}
+
+	xdgHome := os.Getenv("XDG_CONFIG_HOME")
+	xdgDirs := os.Getenv("XDG_CONFIG_DIRS")
+	xdgPaths := append([]string{xdgHome}, strings.Split(xdgDirs,":")...)
+	// path.Join增加子路径
+	allDir := append(xdgPaths, path.Join(home, ".config"))
+
+	for _, val := range allDir {
+		file := findInPath(val)
+		if len(file) > 0 {
+			return file
+		}
+	}
+	return path.Join(home, ".LGM.yaml")
+}
+
+// findInPath returns first "*.yaml" file in path's subdirectory "LGM"
+// if not found returns empty string
+func findInPath(pathTo string) string {
+	directory := path.Join(pathTo, "LGM")
+	files ,err := ioutil.ReadDir(directory)
+
+	if err != nil {
+		return ""
+	}
+
+	for _, file := range files{
+		fileName := file.Name()
+		if path.Ext(fileName) == ".yaml" {
+			return path.Join(directory, fileName)
+		}
+	}
+	return ""
 }
