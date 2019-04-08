@@ -1,6 +1,8 @@
 package runtime
 
 import (
+	"LGM/image"
+	"LGM/utils"
 	"fmt"
 	"github.com/logrusorgru/aurora"
 )
@@ -28,9 +30,17 @@ func Run(options Options) {
 	//Analyzing image...
 	//Building cache...
 
+	analyzer := image.GetAnalyzer(options.ImageId)
 	fmt.Println(title("Fetching image...") + " (this can take a while with large images)")
 	// Todo fetching
 	//
+	reader, err := analyzer.Fetch()
+	if err != nil {
+		fmt.Printf("cannot fetch image: %v\n", err)
+		utils.Exit(1)
+	}
+	defer reader.Close()
+
 
 	fmt.Println(title("Parsing image..."))
 	// Todo Parsing
