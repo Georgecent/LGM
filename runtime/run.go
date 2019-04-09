@@ -32,8 +32,6 @@ func Run(options Options) {
 
 	analyzer := image.GetAnalyzer(options.ImageId)
 	fmt.Println(title("Fetching image...") + " (this can take a while with large images)")
-	// Todo fetching
-	//
 	reader, err := analyzer.Fetch()
 	if err != nil {
 		fmt.Printf("cannot fetch image: %v\n", err)
@@ -41,9 +39,15 @@ func Run(options Options) {
 	}
 	defer reader.Close()
 
-
-	fmt.Println(title("Parsing image..."))
 	// Todo Parsing
+	fmt.Println(title("Parsing image..."))
+	err = analyzer.Parse(reader)
+	if err != nil {
+		fmt.Printf("cannot parse image: %v\n", err)
+		utils.Exit(1)
+	}
+
+	// Todo Analyze
 
 
 	if doExport {
