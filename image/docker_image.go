@@ -177,9 +177,25 @@ func (image *dockerImageAnalyzer) getFileList(tarReader *tar.Reader) ([]filetree
 		
 		name := header.Name
 
+		// Typeflag是标题项的类型
+		// 根据名称中是否存在尾随斜杠，零值将自动提升为typereg或typedir。
 		switch header.Typeflag {
+
+		// Type 'g' is used by the PAX format to store key-value records that
+		// are relevant to all subsequent files.
+		// This package only supports parsing and composing such headers,
+		// but does not currently support persisting the global state across files.
+		// pax格式使用类型“g”存储与所有后续文件相关的键值记录。此包仅支持分析和撰写此类头，但当前不支持跨文件持久化全局状态。
+		// TypeXGlobalHeader = 'g'
 		case tar.TypeXGlobalHeader:
 			return nil, fmt.Errorf("unexptected tar file: (XGlobalHeader): type=%v name=%s", header.Typeflag, name)
+
+		// Type 'x' is used by the PAX format to store key-value records that
+		// are only relevant to the next file.
+		// This package transparently handles these types.
+		// pax格式使用类型“x”来存储只与下一个文件相关的键值记录。
+		// 这个包透明地处理这些类型。
+		// TypeXHeader = 'x'
 		case tar.TypeXHeader:
 			return nil, fmt.Errorf("unexptected tar file (XHeader): type=%v name=%s", header.Typeflag, name)
 		default:
