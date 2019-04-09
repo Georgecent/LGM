@@ -179,7 +179,12 @@ func (image *dockerImageAnalyzer) getFileList(tarReader *tar.Reader) ([]filetree
 
 		switch header.Typeflag {
 		case tar.TypeXGlobalHeader:
-			
+			return nil, fmt.Errorf("unexptected tar file: (XGlobalHeader): type=%v name=%s", header.Typeflag, name)
+		case tar.TypeXHeader:
+			return nil, fmt.Errorf("unexptected tar file (XHeader): type=%v name=%s", header.Typeflag, name)
+		default:
+			files = append(files, filetree.NewFileInfo(tarReader, header, name))
 		}
 	}
+	return files, nil
 }
