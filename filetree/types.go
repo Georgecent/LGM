@@ -42,7 +42,7 @@ type FileInfo struct {
 	Path 		string
 	TypeFlag	byte
 	LinkName	string
-	Hash 		uint64
+	hash 		uint64
 	Size 		int64
 	Mode 		os.FileMode
 	Uid 		int
