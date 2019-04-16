@@ -1,6 +1,7 @@
 package filetree
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 	"strings"
 )
@@ -30,10 +31,10 @@ func NewFileTree() (tree *FileTree) {
 
 // AddPath 向树中添加具有给定负载的新节点
 func (tree *FileTree) AddPath(path string, data FileInfo) (*FileNode, []*FileNode, error) {
-	nodeName := strings.Split(strings.Trim(path, "/"), "/")
+	nodeNames := strings.Split(strings.Trim(path, "/"), "/")
 	node := tree.Root
-	addedNodes := make([]*FileTree, 0)
-	for idx, name := range nodeName{
+	addedNodes := make([]*FileNode, 0)
+	for idx, name := range nodeNames{
 		if name == "" {
 			continue
 		}
@@ -42,6 +43,18 @@ func (tree *FileTree) AddPath(path string, data FileInfo) (*FileNode, []*FileNod
 			node = node.Children[name]
 		} else {
 			node = node.AddChild(name, FileInfo{})
+			addedNodes = append(addedNodes, node)
+
+			if node == nil {
+				// the child could not be added
+				return node, addedNodes, fmt.Errorf(fmt.Sprintf("could not add child node '%s'", name))
+			}
+		}
+
+		if idx == len(nodeNames)-1 {
+			node.Data.FileInfo = data
 		}
 	}
+
+	return node, addedNodes, nil
 }

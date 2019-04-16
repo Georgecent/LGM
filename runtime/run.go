@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"LGM/filetree"
 	"LGM/image"
 	"LGM/utils"
 	"fmt"
@@ -55,6 +56,36 @@ func Run(options Options) {
 	} else {
 		fmt.Println(title("Analyzing image..."))
 	}
+
+	result, err := analyzer.Analyze()
+	if err != nil {
+		fmt.Printf("cannot analyze image: %v\n", err)
+		utils.Exit(1)
+	}
+
+	// Todo
+	//if doExport {
+	//	err = newExport(result).toFile(options.ExportFile)
+	//	if err != nil {
+	//		fmt.Printf("cannot write export file: %v\n", err)
+	//		utils.Exit(1)
+	//	}
+	//}
+
+	//if isCi {
+	//
+	//}else{}
+
+	if doExport {
+		utils.Exit(0)
+	}
+
+	fmt.Println(title("Building cache..."))
+	cache := filetree.NewFileTreeCache(result.RefTrees)
+	cache.Build()
+
+	ui.Run(result, cache)
+
 
 }
 

@@ -81,3 +81,21 @@ func NewFileInfo(reader *tar.Reader, header *tar.Header, path string) FileInfo {
 		IsDir:    header.FileInfo().IsDir(),
 	}
 }
+
+// Copy duplicates a FileInfo
+func (data *FileInfo) Copy() *FileInfo {
+	if data == nil {
+		return nil
+	}
+	return &FileInfo{
+		Path:     data.Path,
+		TypeFlag: data.TypeFlag,
+		LinkName: data.LinkName,
+		hash:     data.hash,
+		Size:     data.Size,
+		Mode:     data.Mode,
+		Uid:      data.Uid,
+		Gid:      data.Gid,
+		IsDir:    data.IsDir,
+	}
+}

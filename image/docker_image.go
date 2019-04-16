@@ -163,6 +163,9 @@ func (image *dockerImageAnalyzer) processLayerTar(name string, layerIdx uint, re
 
 		tree.AddPath(element.Path, element)
 	}
+
+	image.layerMap[tree.Name] = tree
+	return nil
 }
 
 func (image *dockerImageAnalyzer) getFileList(tarReader *tar.Reader) ([]filetree.FileInfo, error){
