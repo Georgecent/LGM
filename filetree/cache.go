@@ -5,15 +5,27 @@ type TreeCacheKey struct {
 }
 
 type TreeCache struct {
-	refTree []*FileTree
+	refTrees []*FileTree
 	cache map[TreeCacheKey]*FileTree
 }
 
 func NewFileTreeCache(refTrees []*FileTree) TreeCache {
 	return TreeCache{
-		refTree:refTrees,
+		refTrees:refTrees,
 		cache:make(map[TreeCacheKey]*FileTree),
 	}
+}
+
+func (cache *TreeCache) Get(bottomTreeStart, bottomTreeStop, topTreeStart, topTreeStop int) *FileTree {
+	key :=  TreeCacheKey{bottomTreeStart, bottomTreeStop, topTreeStart, topTreeStop}
+	if value, exists := cache.cache[key]; exists {
+		return value
+	}else {
+		
+	}
+	value := cache.buildTree(key)
+	cache.cache[key] = value
+	return value
 }
 
 func (cache *TreeCache) Build()  {
@@ -49,3 +61,9 @@ func (cache *TreeCache) Build()  {
 		cache.Get(bottomTreeStart, bottomTreeStop, topTreeStart, topTreeStop)
 	}
 }
+
+func (cache *TreeCache) buildTree(key TreeCacheKey) *FileTree {
+	newTree := StackTreeRange(cache.refTrees, key.bottomTreeStart, key.bottomTreeStop)
+}
+
+

@@ -3,6 +3,7 @@ package filetree
 import (
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 	"strings"
 )
 
@@ -57,4 +58,42 @@ func (tree *FileTree) AddPath(path string, data FileInfo) (*FileNode, []*FileNod
 	}
 
 	return node, addedNodes, nil
+}
+
+// Visitor 处理、观察或以其他方式转换给定节点
+type Visitor func(*FileNode) error
+
+// VisitEvaluator 用于指示访问者是否应该访问给定的节点
+type VisitEvaluator func(*FileNode) bool
+
+// VisitDepthChildFirst iterates the given tree depth-first, evaluating the deepest depths first (visit on bubble up)
+// 访问者模式
+func (tree *FileTree) VisitDepthChildFirst(visitor Visitor, evaluator VisitEvaluator) error {
+	return tree.Root.VisitDepthChildFirst(visitor, evaluator)
+}
+
+// Copy 返回给定文件树的副本
+func (tree *FileTree) Copy() *FileTree {
+	newTree := NewFileTree()
+	newTree.Size = tree.Size
+	newTree.FileSize = tree.FileSize
+	newTree.Root = tree.Root.Copy(newTree.Root)
+
+	// update the tree pointers
+	err := newTree.VisitDepthChildFirst(func(node *FileNode) error{
+		node.Tree = newTree
+		return nil
+	}, nil)
+}
+
+// StackTreeRange 将一系列树组合成一棵树
+func StackTreeRange(trees []*FileTree, start, stop int) *FileTree {
+	tree := trees[0].Copy()
+	for idx := start; idx <= stop; idx++ {
+		err := tree.Stack(trees[idx])
+		if err != nil {
+			logrus.Errorf("could not stack tree range: %v", err)
+		}
+	}
+	return tree
 }

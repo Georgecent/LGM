@@ -33,3 +33,20 @@ func (node *FileNode) AddChild(name string, data FileInfo) (child *FileNode)  {
 	}
 	return child
 }
+
+// Copy duplicates the existing node relative to a new parent node.
+func (node *FileNode) Copy(parent *FileNode) *FileNode {
+	newNode := NewNode(parent, node.Name, node.Data.FileInfo)
+	newNode.Data.ViewInfo = node.Data.ViewInfo
+	newNode.Data.DiffType = node.Data.DiffType
+	for name, child := range node.Children {
+		newNode.Children[name] = child.Copy(newNode)
+		child.Parent = newNode
+	}
+	return newNode
+}
+
+// VisitDepthChildFirst iterates a tree depth-first (starting at this FileNode), evaluating the deepest depths first (visit on bubble up)
+func (node *FileNode) VisitDepthChildFirst(visitor Visitor, evaluator VisitEvaluator) error {
+	
+}
