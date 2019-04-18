@@ -84,6 +84,31 @@ func (tree *FileTree) Copy() *FileTree {
 		node.Tree = newTree
 		return nil
 	}, nil)
+
+	if err != nil {
+		logrus.Errorf("unable to propagate tree on copy(): %+v", err)
+	}
+
+	return newTree
+}
+
+// Stack 将两棵树合并在一起。这是通过将给定的树“堆叠”到所属树的顶部来完成的。
+func (tree *FileTree) Stack(upper *FileTree) error {
+	graft := func(node *FileNode) error{
+		if node.IsWhiteout() {
+			err := tree.RemovePath(node.Path())
+			if err != nil {
+				return fmt.Errorf("cannot remove node %s: %v", node.Path(), err.Error())
+			}
+		} else {
+			newNode, _, err := tree.AddPath(node.Path(), node.Data.FileInfo)
+			if err != nil {
+				return fmt.Errorf("cannot add node %s: %v", newNode.Path(), err.Error())
+			}
+		}
+		return nil
+	}
+	return upper.VisitDepthChildFirst(graft, nil)
 }
 
 // StackTreeRange 将一系列树组合成一棵树
@@ -96,4 +121,29 @@ func StackTreeRange(trees []*FileTree, start, stop int) *FileTree {
 		}
 	}
 	return tree
+}
+
+// RemovePath removes a node from the tree given its path.
+func (tree *FileTree) RemovePath(path string) error {
+	node, err := tree.GetNode(path)
+	if err != nil {
+		return err
+	}
+	return node.Remove()
+}
+
+// GetNode fetches a single node when given a slash-delimited string from root ('/') to the desired node (e.g. '/a/node/path')
+func (tree *FileTree) GetNode(path string) (*FileNode, error) {
+	nodeNames := strings.Split(strings.Trim(path, "/"), "/")
+	node := tree.Root
+	for _, name := range nodeNames {
+		if name == "" {
+			continue
+		}
+		if node.Children[name] == nil {
+			return nil, fmt.Errorf("path does not exist: %s", path)
+		}
+		node = node.Children[name]
+	}
+	return node, nil
 }

@@ -21,7 +21,7 @@ type FileNode struct {
 	Name 		string
 	Data		NodeData
 	Children	map[string]*FileNode
-	Path 		string
+	path 		string
 }
 
 // NodeData是FileNode的有效负载

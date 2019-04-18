@@ -64,6 +64,7 @@ func (cache *TreeCache) Build()  {
 
 func (cache *TreeCache) buildTree(key TreeCacheKey) *FileTree {
 	newTree := StackTreeRange(cache.refTrees, key.bottomTreeStart, key.bottomTreeStop)
+
 }
 
 
