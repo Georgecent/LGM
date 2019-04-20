@@ -146,7 +146,82 @@ func (image *dockerImageAnalyzer) Parse(tarFile io.ReadCloser) error{
 }
 
 func (image *dockerImageAnalyzer) Analyze() (*AnalysisResult, error){
+	image.trees = make([]*filetree.FileTree, 0)
 
+	manifest := newDockerImageManifest(image.jsonFiles["manifest.json"])
+	config := newDockerImageConfig(image.jsonFiles[manifest.ConfigPath])
+
+	// build the content tree
+	for _, treeName := range manifest.LayerTarPaths {
+		image.trees = append(image.trees, image.layerMap[treeName])
+	}
+
+	// build the layers array
+	image.layers = make([]*dockerLayer, len(image.trees))
+
+	// note that the image config stores images in reverse chronological order, so iterate backwards through layers
+	// as you iterate chronologically through history (ignoring history items that have no layer contents)
+	// Note: history is not required metadata in a docker image!
+	tarPathIdx := 0
+	histIdx := 0
+	for layerIdx := len(image.trees) - 1; layerIdx >= 0; layerIdx-- {
+
+		tree := image.trees[(len(image.trees)-1)-layerIdx]
+
+		// ignore empty layers, we are only observing layers with content
+		historyObj := dockerImageHistoryEntry{
+			CreatedBy: "(missing)",
+		}
+		for nextHistIdx := histIdx; nextHistIdx < len(config.History); nextHistIdx++ {
+			if !config.History[nextHistIdx].EmptyLayer {
+				histIdx = nextHistIdx
+				break
+			}
+		}
+		if histIdx < len(config.History) && !config.History[histIdx].EmptyLayer {
+			historyObj = config.History[histIdx]
+			histIdx++
+		}
+
+		image.layers[layerIdx] = &dockerLayer{
+			history: historyObj,
+			index:   tarPathIdx,
+			tree:    image.trees[layerIdx],
+			tarPath: manifest.LayerTarPaths[tarPathIdx],
+		}
+		image.layers[layerIdx].history.Size = uint64(tree.FileSize)
+
+		tarPathIdx++
+	}
+
+	efficiency, inefficiencies := filetree.Efficiency(image.trees)
+
+	var sizeBytes, userSizeBytes uint64
+	layers := make([]Layer, len(image.layers))
+	for i, v := range image.layers {
+		layers[i] = v
+		sizeBytes += v.Size()
+		if i != 0 {
+			userSizeBytes += v.Size()
+		}
+	}
+
+	var wastedBytes uint64
+	for idx := 0; idx < len(inefficiencies); idx++ {
+		fileData := inefficiencies[len(inefficiencies)-1-idx]
+		wastedBytes += uint64(fileData.CumulativeSize)
+	}
+
+	return &AnalysisResult{
+		Layers:            layers,
+		RefTrees:          image.trees,
+		Efficiency:        efficiency,
+		UserSizeByes:      userSizeBytes,
+		SizeBytes:         sizeBytes,
+		WastedBytes:       wastedBytes,
+		WastedUserPercent: float64(float64(wastedBytes) / float64(userSizeBytes)),
+		Inefficiencies:    inefficiencies,
+	}, nil
 }
 
 func (image *dockerImageAnalyzer) processLayerTar(name string, layerIdx uint, reader *tar.Reader) error {

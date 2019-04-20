@@ -115,6 +115,19 @@ func (node *FileNode) Remove() error {
 	return nil
 }
 
+// Compare determines the DiffType between two FileInfos based on the type and contents of each given FileInfo
+func (data *FileInfo) Compare(other FileInfo) DiffType {
+	if data.TypeFlag == other.TypeFlag {
+		if data.hash == other.hash &&
+			data.Mode == other.Mode &&
+			data.Uid == other.Uid &&
+			data.Gid == other.Gid {
+			return Unchanged
+		}
+	}
+	return Changed
+}
+
 // compare the current node against the given node, returning a definitive DiffType.
 func (node *FileNode) compare(other *FileNode) DiffType {
 	if node == nil && other == nil {

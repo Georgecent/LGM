@@ -66,6 +66,11 @@ type Visitor func(*FileNode) error
 // VisitEvaluator 用于指示访问者是否应该访问给定的节点
 type VisitEvaluator func(*FileNode) bool
 
+// IsLeaf returns true is the current node has no child nodes.
+func (node *FileNode) IsLeaf() bool {
+	return len(node.Children) == 0
+}
+
 // VisitDepthChildFirst iterates the given tree depth-first, evaluating the deepest depths first (visit on bubble up)
 // 访问者模式
 func (tree *FileTree) VisitDepthChildFirst(visitor Visitor, evaluator VisitEvaluator) error {
@@ -221,6 +226,20 @@ func (tree *FileTree) markRemoved(path string) error {
 		return err
 	}
 	return node.AssignDiffType(Removed)
+}
+
+// deriveDiffType 确定当前FileNode的DiffType。 注意：节点的DiffType始终是其属性及其内容的DiffType。 内容是目录子项的文件的字节。
+func (node *FileNode) deriveDiffType(diffType DiffType) error{
+	if node.IsLeaf() {
+		return node.AssignDiffType(diffType)
+	}
+
+	myDiffType := diffType
+	for _, v := range node.Children {
+		myDiffType = myDiffType.merge(v.Data.DiffType)
+	}
+
+	return node.AssignDiffType(myDiffType)
 }
 
 // AssignDiffType 会将给定的DiffType分配给此节点，可能会影响子节点。

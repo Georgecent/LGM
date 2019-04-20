@@ -99,3 +99,12 @@ func (data *FileInfo) Copy() *FileInfo {
 		IsDir:    data.IsDir,
 	}
 }
+
+// merge two DiffTypes into a single result. Essentially, return the given value unless they two values differ,
+// in which case we can only determine that there is "a change".
+func (diff DiffType) merge(other DiffType) DiffType {
+	if diff == other {
+		return diff
+	}
+	return Changed
+}
