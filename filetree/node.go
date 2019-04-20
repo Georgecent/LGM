@@ -114,3 +114,27 @@ func (node *FileNode) Remove() error {
 	node.Tree.Size--
 	return nil
 }
+
+// compare the current node against the given node, returning a definitive DiffType.
+func (node *FileNode) compare(other *FileNode) DiffType {
+	if node == nil && other == nil {
+		return Unchanged
+	}
+
+	if node == nil && other != nil {
+		return Added
+	}
+
+	if node != nil && other == nil {
+		return Removed
+	}
+
+	if other.IsWhiteout() {
+		return Removed
+	}
+	if node.Name != other.Name {
+		panic("comparing mismatched nodes")
+	}
+
+	return node.Data.FileInfo.Compare(other.Data.FileInfo)
+}

@@ -147,3 +147,97 @@ func (tree *FileTree) GetNode(path string) (*FileNode, error) {
 	}
 	return node, nil
 }
+
+type compareMark struct {
+	lowerNode *FileNode
+	upperNode *FileNode
+	// 试验
+	tentative DiffType
+	final     DiffType
+}
+
+// CompareAndMark marks the FileNodes in the owning (lower) tree with DiffType annotations when compared to the given (upper) tree.
+func (tree *FileTree) CompareAndMark(upper *FileTree) error {
+	// 总是比较原始的，未改变的树。
+	originalTree := tree
+
+	modifications := make([]compareMark, 0)
+
+	graft := func(upperNode *FileNode) error{
+		if upperNode.IsWhiteout() {
+			err := tree.markRemoved(upperNode.Path())
+			if err != nil {
+				return fmt.Errorf("cannot remove upperNode %s: %v", upperNode.Path(), err.Error())
+			}
+			return nil
+		}
+
+		// 注意：由于我们没有与原始树进行比较（复制树很昂贵），我们可能会错误地将添加节点的父节点标记为已修改。 这将在以后更正。
+		originalLowerNode, _ := originalTree.GetNode(upperNode.Path())
+
+		if originalLowerNode == nil {
+			_, newNodes, err := tree.AddPath(upperNode.Path(), upperNode.Data.FileInfo)
+			if err != nil {
+				return fmt.Errorf("cannot add new upperNode %s: %v", upperNode.Path(), err.Error())
+			}
+			for idx := len(newNodes) - 1; idx >= 0; idx-- {
+				newNode := newNodes[idx]
+				modifications = append(modifications, compareMark{lowerNode: newNode, upperNode: upperNode, tentative: -1, final: Added})
+			}
+			return nil
+		}
+
+		// the file exists in the lower layer
+		lowerNode, _ := tree.GetNode(upperNode.Path())
+		diffType := lowerNode.compare(upperNode)
+		modifications = append(modifications, compareMark{lowerNode: lowerNode, upperNode: upperNode, tentative: diffType, final: -1})
+
+		return nil
+	}
+	// we must visit from the leaves upwards to ensure that diff types can be derived from and assigned to children
+	err := upper.VisitDepthChildFirst(graft, nil)
+	if err != nil {
+		return err
+	}
+
+	// take note of the comparison results on each note in the owning tree.
+	for _, pair := range modifications {
+		if pair.final > 0 {
+			pair.lowerNode.AssignDiffType(pair.final)
+		} else if pair.lowerNode.Data.DiffType == Unchanged {
+			pair.lowerNode.deriveDiffType(pair.tentative)
+		}
+
+		// persist the upper's payload on the owning tree
+		pair.lowerNode.Data.FileInfo = *pair.upperNode.Data.FileInfo.Copy()
+	}
+	return nil
+}
+
+// markRemoved annotates the FileNode at the given path as Removed.
+func (tree *FileTree) markRemoved(path string) error {
+	node, err := tree.GetNode(path)
+	if err != nil {
+		return err
+	}
+	return node.AssignDiffType(Removed)
+}
+
+// AssignDiffType 会将给定的DiffType分配给此节点，可能会影响子节点。
+func (node *FileNode) AssignDiffType(diffType DiffType) error {
+	var err error
+
+	node.Data.DiffType = diffType
+
+	if diffType == Removed {
+		// if we've removed this node, then all children have been removed as well
+		for _, child := range node.Children {
+			err = child.AssignDiffType(diffType)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
