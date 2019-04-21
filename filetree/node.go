@@ -20,7 +20,7 @@ func NewNode(parent *FileNode, name string, data FileInfo) (node *FileNode)  {
 
 	node.Children = make(map[string]*FileNode)
 	node.Parent = parent
-	if parent == nil {
+	if parent != nil {
 		node.Tree = parent.Tree
 	}
 	return node
@@ -28,18 +28,21 @@ func NewNode(parent *FileNode, name string, data FileInfo) (node *FileNode)  {
 
 // AddChild creates a new node relative to the current FileNode.
 func (node *FileNode) AddChild(name string, data FileInfo) (child *FileNode)  {
-
+	// never allow processing of purely whiteout flag files (for now)
 	if strings.HasPrefix(name, doubleWhiteoutPrefix) {
 		return nil
 	}
 
 	child = NewNode(node, name, data)
 	if node.Children[name] != nil {
+		// tree node already exists, replace the payload, keep the children
 		node.Children[name].Data.FileInfo = *data.Copy()
-	}else {
+	} else {
+		//fmt.Printf("In AddChild TreeSize: %d\n", node.Tree.Size)
 		node.Children[name] = child
 		node.Tree.Size++
 	}
+
 	return child
 }
 

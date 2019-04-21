@@ -35,14 +35,17 @@ func (tree *FileTree) AddPath(path string, data FileInfo) (*FileNode, []*FileNod
 	nodeNames := strings.Split(strings.Trim(path, "/"), "/")
 	node := tree.Root
 	addedNodes := make([]*FileNode, 0)
-	for idx, name := range nodeNames{
+	for idx, name := range nodeNames {
 		if name == "" {
 			continue
 		}
-
+		// find or create node
 		if node.Children[name] != nil {
 			node = node.Children[name]
 		} else {
+			// don't attach the payload. The payload is destined for the
+			// Path's end node, not any intermediary node.
+			//fmt.Printf("In AddPath TreeSize: %d\n", node.Tree.Size)
 			node = node.AddChild(name, FileInfo{})
 			addedNodes = append(addedNodes, node)
 
@@ -52,11 +55,12 @@ func (tree *FileTree) AddPath(path string, data FileInfo) (*FileNode, []*FileNod
 			}
 		}
 
+		// attach payload to the last specified node
 		if idx == len(nodeNames)-1 {
 			node.Data.FileInfo = data
 		}
-	}
 
+	}
 	return node, addedNodes, nil
 }
 

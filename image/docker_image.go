@@ -162,7 +162,7 @@ func (image *dockerImageAnalyzer) Parse(tarFile io.ReadCloser) error{
 				if err != nil {
 					return err
 				}
-			}else if strings.HasSuffix(name, "json") {	//HasSuffix测试字符串是否以json后缀结尾。
+			} else if strings.HasSuffix(name, "json") {	//HasSuffix测试字符串是否以json后缀结尾。
 				fileBuffer, err := ioutil.ReadAll(tarReader)
 				if err != nil {
 					return err
@@ -263,9 +263,9 @@ func (image *dockerImageAnalyzer) processLayerTar(name string, layerIdx uint, re
 		return err
 	}
 
-	for _, element := range fileInfos{
+	for _, element := range fileInfos {
 		tree.FileSize += uint64(element.Size)
-
+		//fmt.Printf("TreeSize: %d\n", tree.Size)
 		tree.AddPath(element.Path, element)
 	}
 

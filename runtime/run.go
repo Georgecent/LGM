@@ -16,14 +16,14 @@ func Run(options Options) {
 	doExport := options.ExportFile != ""
 
 	// Todo
-	//doBuild := len(options.BuildArgs) > 0
+	doBuild := len(options.BuildArgs) > 0
 	//isCi, _ := strconv.ParseBool(os.Getenv("CI"))
 
 	// Todo
-	//if doBuild {
-	//	fmt.Println(title("Buliding image..."))
-	//	options.ImageId = runBuild(options.BuildArgs)
-	//}
+	if doBuild {
+		fmt.Println(title("Buliding image..."))
+		//options.ImageId = runBuild(options.BuildArgs)
+	}
 
 	//对于一个已存在的镜像
 	//Fetching image... (this can take a while with large images)

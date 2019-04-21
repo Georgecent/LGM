@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	"LGM/filetree"
 	"LGM/utils"
 	"fmt"
 	"io/ioutil"
@@ -52,6 +53,7 @@ func Execute() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+	utils.CleanUp()
 }
 
 func init() {
@@ -112,7 +114,8 @@ func initConfig() {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
 
-
+	// set global defaults (for performance)
+	filetree.GlobalFileTreeCollapse = viper.GetBool("filetree.collapse-dir")
 }
 
 // initLogging 使用格式化程序和位置设置日志对象
