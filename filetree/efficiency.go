@@ -40,10 +40,8 @@ func Efficiency(trees []*FileTree) (float64, EfficiencySlice) {
 		}
 		data := efficiencyMap[path]
 
-		// this node may have had children that were deleted, however, we won't explicitly list out every child, only
-		// the top-most parent with the cumulative size. These operations will need to be done on the full (stacked)
-		// tree.
-		// Note: whiteout files may also represent directories, so we need to find out if this was previously a file or dir.
+		// 此节点可能已经删除了的子节点，但是，我们不会明确列出每个子节点，只列出具有累积大小的最顶层父节点。 这些操作需要在完整（堆叠）树上完成。
+		// 注意：whiteout文件也可能代表目录，所以我们需要找出它以前是文件还是目录。
 		var sizeBytes int64
 
 		if node.IsWhiteout() {
