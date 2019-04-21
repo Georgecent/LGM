@@ -56,9 +56,9 @@ type DiffType int
 // EfficiencyData表示给定文件树路径的存储和引用统计信息。
 type EfficiencyData struct {
 	Path				string
-	Nodes 				[]*FileTree
+	Nodes 				[]*FileNode
 	CumulativeSize		int64
-	MinDiscoveredSize 	int64
+	minDiscoveredSize 	int64
 }
 
 // EfficiencySlice表示一组有序的EfficiencyData数据结构。

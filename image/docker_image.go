@@ -5,9 +5,11 @@ import (
 	"LGM/utils"
 	"archive/tar"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/docker/cli/cli/connhelper"
 	"github.com/docker/docker/client"
+	"github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -24,6 +26,34 @@ func newDockerImageAnalyzer(imageId string) Analyzer {
 		layerMap:  make(map[string]*filetree.FileTree),
 		id:        imageId,
 	}
+}
+
+func newDockerImageManifest(manifestBytes []byte) dockerImageManifest {
+	var manifest []dockerImageManifest
+	err := json.Unmarshal(manifestBytes, &manifest)
+	if err != nil {
+		logrus.Panic(err)
+	}
+	return manifest[0]
+}
+
+func newDockerImageConfig(configBytes []byte) dockerImageConfig{
+	var imageConfig dockerImageConfig
+	err := json.Unmarshal(configBytes, &imageConfig)
+	if err != nil {
+		logrus.Panic(err)
+	}
+
+	layerIdx := 0
+	for idx := range imageConfig.History{
+		if imageConfig.History[idx].EmptyLayer {
+			imageConfig.History[idx].ID = "<missing>"
+		} else {
+			imageConfig.History[idx].ID = imageConfig.RootFs.DiffIds[layerIdx]
+			layerIdx++
+		}
+	}
+	return imageConfig
 }
 
 func (image *dockerImageAnalyzer) Fetch() (io.ReadCloser, error) {
@@ -159,8 +189,7 @@ func (image *dockerImageAnalyzer) Analyze() (*AnalysisResult, error){
 	// build the layers array
 	image.layers = make([]*dockerLayer, len(image.trees))
 
-	// note that the image config stores images in reverse chronological order, so iterate backwards through layers
-	// as you iterate chronologically through history (ignoring history items that have no layer contents)
+	// 请注意，图像配置以反向时间顺序存储图像，因此当按时间顺序迭代历史记录时，向后遍历图层（忽略没有图层内容的历史记录项）
 	// Note: history is not required metadata in a docker image!
 	tarPathIdx := 0
 	histIdx := 0
@@ -194,6 +223,7 @@ func (image *dockerImageAnalyzer) Analyze() (*AnalysisResult, error){
 		tarPathIdx++
 	}
 
+	// 计算空间利用率
 	efficiency, inefficiencies := filetree.Efficiency(image.trees)
 
 	var sizeBytes, userSizeBytes uint64
