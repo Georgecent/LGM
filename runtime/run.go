@@ -84,7 +84,7 @@ func Run(options Options) {
 	cache := filetree.NewFileTreeCache(result.RefTrees)
 	cache.Build()
 
-	//ui.Run(result, cache)
+	ui.Run(result, cache)
 
 
 }
