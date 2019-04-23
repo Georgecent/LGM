@@ -13,7 +13,7 @@ func SetUi(g *gocui.Gui) {
 	ui = g
 }
 
-func PringAndExit(args ...interface{})  {
+func PrintAndExit(args ...interface{})  {
 	logrus.Println(args...)
 	CleanUp()
 	fmt.Println(args...)

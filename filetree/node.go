@@ -1,10 +1,27 @@
 package filetree
 
 import (
+	"archive/tar"
 	"fmt"
+	"github.com/dustin/go-humanize"
+	"github.com/fatih/color"
+	"github.com/phayes/permbits"
+	"github.com/sirupsen/logrus"
 	"sort"
 	"strings"
 )
+
+const (
+	AttributeFormat = "%s%s %11s %10s "
+)
+
+var diffTypeColor = map[DiffType]*color.Color{
+	Added:     color.New(color.FgGreen),
+	Removed:   color.New(color.FgRed),
+	Changed:   color.New(color.FgYellow),
+	Unchanged: color.New(color.Reset),
+}
+
 
 // IsWhiteout returns an indication if this file may be a overlay-whiteout file.
 func (node *FileNode) IsWhiteout() bool {
@@ -24,6 +41,44 @@ func NewNode(parent *FileNode, name string, data FileInfo) (node *FileNode)  {
 		node.Tree = parent.Tree
 	}
 	return node
+}
+
+// String shows the filename formatted into the proper color (by DiffType), additionally indicating if it is a symlink.
+func (node *FileNode) String() string {
+	var display string
+	if node == nil {
+		return ""
+	}
+
+	display = node.Name
+	if node.Data.FileInfo.TypeFlag == tar.TypeSymlink || node.Data.FileInfo.TypeFlag == tar.TypeLink {
+		display += " → " + node.Data.FileInfo.LinkName
+	}
+	return diffTypeColor[node.Data.DiffType].Sprint(display)
+}
+
+// renderTreeLine returns a string representing this FileNode in the context of a greater ASCII tree.
+func (node *FileNode) renderTreeLine(spaces []bool, last bool, collapsed bool) string {
+	var otherBranches string
+	for _, space := range spaces {
+		if space {
+			otherBranches += noBranchSpace
+		} else {
+			otherBranches += branchSpace
+		}
+	}
+
+	thisBranch := middleItem
+	if last {
+		thisBranch = lastItem
+	}
+
+	collapsedIndicator := uncollapsedItem
+	if collapsed {
+		collapsedIndicator = collapsedItem
+	}
+
+	return otherBranches + thisBranch + collapsedIndicator + node.String() + newLine
 }
 
 // AddChild creates a new node relative to the current FileNode.
@@ -79,6 +134,39 @@ func (node *FileNode) VisitDepthChildFirst(visitor Visitor, evaluator VisitEvalu
 		return visitor(node)
 	}
 	return nil
+}
+
+// VisitDepthParentFirst iterates a tree depth-first (starting at this FileNode), evaluating the shallowest depths first (visit while sinking down)
+func (node *FileNode) VisitDepthParentFirst(visitor Visitor, evaluator VisitEvaluator) error {
+	var err error
+
+	doVisit := evaluator != nil && evaluator(node) || evaluator == nil
+
+	if !doVisit {
+		return nil
+	}
+
+	// never visit the root node
+	if node != node.Tree.Root {
+		err = visitor(node)
+		if err != nil {
+			return err
+		}
+	}
+
+	var keys []string
+	for key := range node.Children {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	for _, name := range keys {
+		child := node.Children[name]
+		err = child.VisitDepthParentFirst(visitor, evaluator)
+		if err != nil {
+			return err
+		}
+	}
+	return err
 }
 
 // Path 返回从较大树的根到当前节点的斜杠分隔字符串(e.g. /a/path/to/here)
@@ -153,4 +241,44 @@ func (node *FileNode) compare(other *FileNode) DiffType {
 	}
 
 	return node.Data.FileInfo.Compare(other.Data.FileInfo)
+}
+
+// MetadatString 以列式字符串形式返回FileNode元数据。
+func (node *FileNode) MetadataString() string {
+	if node == nil {
+		return ""
+	}
+
+	fileMode := permbits.FileMode(node.Data.FileInfo.Mode).String()
+	dir := "-"
+	if node.Data.FileInfo.IsDir {
+		dir = "d"
+	}
+	user := node.Data.FileInfo.Uid
+	group := node.Data.FileInfo.Gid
+	userGroup := fmt.Sprintf("%d:%d", user, group)
+
+	var sizeBytes int64
+
+	if node.IsLeaf() {
+		sizeBytes = node.Data.FileInfo.Size
+	} else {
+		sizer := func(curNode *FileNode) error {
+			// don't include file sizes of children that have been removed (unless the node in question is a removed dir,
+			// then show the accumulated size of removed files)
+			if curNode.Data.DiffType != Removed || node.Data.DiffType == Removed {
+				sizeBytes += curNode.Data.FileInfo.Size
+			}
+			return nil
+		}
+
+		err := node.VisitDepthChildFirst(sizer, nil)
+		if err != nil {
+			logrus.Errorf("unable to propagate node for metadata: %+v", err)
+		}
+	}
+
+	size := humanize.Bytes(uint64(sizeBytes))
+
+	return diffTypeColor[node.Data.DiffType].Sprint(fmt.Sprintf(AttributeFormat, dir, fileMode, userGroup, size))
 }

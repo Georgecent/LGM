@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+	"sort"
 	"strings"
 )
 
@@ -79,6 +80,122 @@ func (node *FileNode) IsLeaf() bool {
 // 访问者模式
 func (tree *FileTree) VisitDepthChildFirst(visitor Visitor, evaluator VisitEvaluator) error {
 	return tree.Root.VisitDepthChildFirst(visitor, evaluator)
+}
+
+// VisitDepthParentFirst iterates the given tree depth-first, evaluating the shallowest depths first (visit while sinking down)
+func (tree *FileTree) VisitDepthParentFirst(visitor Visitor, evaluator VisitEvaluator) error {
+	return tree.Root.VisitDepthParentFirst(visitor, evaluator)
+}
+
+// StringBetween 以ASCII表示形式返回部分树。
+func (tree *FileTree) StringBetween(start, stop int, showAttributes bool) string {
+	return tree.renderStringTreeBetween(start, stop, showAttributes)
+}
+
+// renderParams is a representation of a FileNode in the context of the greater tree. All
+// data stored is necessary for rendering a single line in a tree format.
+type renderParams struct {
+	node          *FileNode
+	spaces        []bool
+	childSpaces   []bool
+	showCollapsed bool
+	isLast        bool
+}
+
+// renderStringTreeBetween returns a string representing the given tree between the given rows. Since each node
+// is rendered on its own line, the returned string shows the visible nodes not affected by a collapsed parent.
+func (tree *FileTree) renderStringTreeBetween(startRow, stopRow int, showAttributes bool) string {
+	// generate a list of nodes to render
+	var params = make([]renderParams, 0)
+	var result string
+
+	// visit from the front of the list
+	var paramsToVisit = []renderParams{{node: tree.Root, spaces: []bool{}, showCollapsed: false, isLast: false}}
+	for currentRow := 0; len(paramsToVisit) > 0 && currentRow <= stopRow; currentRow++ {
+		// pop the first node
+		var currentParams renderParams
+		currentParams, paramsToVisit = paramsToVisit[0], paramsToVisit[1:]
+
+		// take note of the next nodes to visit later
+		var keys []string
+		for key := range currentParams.node.Children {
+			keys = append(keys, key)
+		}
+		// we should always visit nodes in order
+		sort.Strings(keys)
+
+		var childParams = make([]renderParams, 0)
+		for idx, name := range keys {
+			child := currentParams.node.Children[name]
+			// don't visit this node...
+			if child.Data.ViewInfo.Hidden || currentParams.node.Data.ViewInfo.Collapsed {
+				continue
+			}
+
+			// visit this node...
+			isLast := idx == (len(currentParams.node.Children) - 1)
+			showCollapsed := child.Data.ViewInfo.Collapsed && len(child.Children) > 0
+
+			// completely copy the reference slice
+			childSpaces := make([]bool, len(currentParams.childSpaces))
+			copy(childSpaces, currentParams.childSpaces)
+
+			if len(child.Children) > 0 && !child.Data.ViewInfo.Collapsed {
+				childSpaces = append(childSpaces, isLast)
+			}
+
+			childParams = append(childParams, renderParams{
+				node:          child,
+				spaces:        currentParams.childSpaces,
+				childSpaces:   childSpaces,
+				showCollapsed: showCollapsed,
+				isLast:        isLast,
+			})
+		}
+		// keep the child nodes to visit later
+		paramsToVisit = append(childParams, paramsToVisit...)
+
+		// never process the root node
+		if currentParams.node == tree.Root {
+			currentRow--
+			continue
+		}
+
+		// process the current node
+		if currentRow >= startRow && currentRow <= stopRow {
+			params = append(params, currentParams)
+		}
+	}
+
+	// render the result
+	for idx := range params {
+		currentParams := params[idx]
+
+		if showAttributes {
+			result += currentParams.node.MetadataString() + " "
+		}
+		result += currentParams.node.renderTreeLine(currentParams.spaces, currentParams.isLast, currentParams.showCollapsed)
+	}
+
+	return result
+}
+
+func (tree *FileTree) VisibleSize() int {
+	var size int
+
+	visitor := func(node *FileNode) error {
+		size++
+		return nil
+	}
+	visitEvaluator := func(node *FileNode) bool {
+		return !node.Data.ViewInfo.Collapsed && !node.Data.ViewInfo.Hidden
+	}
+	err := tree.VisitDepthParentFirst(visitor, visitEvaluator)
+	if err != nil {
+		logrus.Errorf("unable to determine visible tree size: %+v", err)
+	}
+
+	return size
 }
 
 // Copy 返回给定文件树的副本
