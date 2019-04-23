@@ -13,7 +13,7 @@ type StatusController struct {
 	view *gocui.View
 }
 
-// NewStatusController creates a new view object attached the the global [gocui] screen object.
+// NewStatusController 创建附加到全局[gocui]屏幕对象的新视图对象.
 func NewStatusController(name string, gui *gocui.Gui) (controller *StatusController) {
 	controller = new(StatusController)
 
@@ -24,7 +24,7 @@ func NewStatusController(name string, gui *gocui.Gui) (controller *StatusControl
 	return controller
 }
 
-// Setup initializes the UI concerns within the context of a global [gocui] view object.
+// Setup 在全局[gocui]视图对象的上下文中初始化UI关注点。
 func (controller *StatusController) Setup(v *gocui.View, header *gocui.View) error {
 
 	// set controller options
@@ -36,7 +36,7 @@ func (controller *StatusController) Setup(v *gocui.View, header *gocui.View) err
 	return nil
 }
 
-// IsVisible indicates if the status view pane is currently initialized.
+// IsVisible 指示状态视图窗格当前是否已初始化。
 func (controller *StatusController) IsVisible() bool {
 	if controller == nil {
 		return false
@@ -44,22 +44,22 @@ func (controller *StatusController) IsVisible() bool {
 	return true
 }
 
-// CursorDown moves the cursor down in the details pane (currently indicates nothing).
+// CursorDown 在“详细信息”窗格中向下移动光标（当前指示为“无”）。
 func (controller *StatusController) CursorDown() error {
 	return nil
 }
 
-// CursorUp moves the cursor up in the details pane (currently indicates nothing).
+// CursorUp 在“详细信息”窗格中向上移动光标（当前指示为“无”）。
 func (controller *StatusController) CursorUp() error {
 	return nil
 }
 
-// Update refreshes the state objects for future rendering (currently does nothing).
+// Update 刷新状态对象以便将来进行渲染（当前不执行任何操作）。
 func (controller *StatusController) Update() error {
 	return nil
 }
 
-// Render flushes the state objects to the screen.
+// Render 将状态对象刷新到屏幕。
 func (controller *StatusController) Render() error {
 	controller.gui.Update(func(g *gocui.Gui) error {
 		controller.view.Clear()
@@ -71,7 +71,7 @@ func (controller *StatusController) Render() error {
 	return nil
 }
 
-// KeyHelp indicates all the possible global actions a user can take when any pane is selected.
+// KeyHelp 指示用户在选择当前窗格时可以执行的所有操作。
 func (controller *StatusController) KeyHelp() string {
 	return renderStatusOption(GlobalKeybindings.quit[0].String(), "Quit", false) +
 		renderStatusOption(GlobalKeybindings.toggleView[0].String(), "Switch view", false) +

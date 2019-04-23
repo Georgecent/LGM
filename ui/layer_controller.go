@@ -137,13 +137,13 @@ func (controller *LayerController) Setup(v *gocui.View, header *gocui.View) erro
 	return controller.Render()
 }
 
-// height obtains the height of the current pane (taking into account the lost space due to the header).
+// height 获取当前窗格的高度（考虑到由于标题而丢失的空间）。
 func (controller *LayerController) height() uint {
 	_, height := controller.view.Size()
 	return uint(height - 1)
 }
 
-// IsVisible indicates if the layer view pane is currently initialized.
+// IsVisible 指示层视图窗格当前是否已初始化。
 func (controller *LayerController) IsVisible() bool {
 	if controller == nil {
 		return false
@@ -151,7 +151,7 @@ func (controller *LayerController) IsVisible() bool {
 	return true
 }
 
-// PageDown moves to next page putting the cursor on top
+// PageDown 移到下一页，将光标放在顶部
 func (controller *LayerController) PageDown() error {
 	step := int(controller.height()) + 1
 	targetLayerIndex := controller.LayerIndex + step
@@ -170,7 +170,7 @@ func (controller *LayerController) PageDown() error {
 	return nil
 }
 
-// PageUp moves to previous page putting the cursor on top
+// PageUp 移到上一页，将光标放在上面
 func (controller *LayerController) PageUp() error {
 	step := int(controller.height()) + 1
 	targetLayerIndex := controller.LayerIndex - step
@@ -189,7 +189,7 @@ func (controller *LayerController) PageUp() error {
 	return nil
 }
 
-// CursorDown moves the cursor down in the layer pane (selecting a higher layer).
+// CursorDown 在图层窗格中向下移动光标（选择更高的图层）。
 func (controller *LayerController) CursorDown() error {
 	if controller.LayerIndex < len(controller.Layers) {
 		err := CursorDown(controller.gui, controller.view)
@@ -200,7 +200,7 @@ func (controller *LayerController) CursorDown() error {
 	return nil
 }
 
-// CursorUp moves the cursor up in the layer pane (selecting a lower layer).
+// CursorUp 在图层窗格中向上移动光标（选择较低的图层）。
 func (controller *LayerController) CursorUp() error {
 	if controller.LayerIndex > 0 {
 		err := CursorUp(controller.gui, controller.view)
@@ -211,7 +211,7 @@ func (controller *LayerController) CursorUp() error {
 	return nil
 }
 
-// SetCursor resets the cursor and orients the file tree view based on the given layer index.
+// SetCursor 重置光标并根据给定的层索引确定文件树视图的方向。
 func (controller *LayerController) SetCursor(layer int) error {
 	controller.LayerIndex = layer
 	Controllers.Tree.setTreeByLayer(controller.getCompareIndexes())
@@ -221,12 +221,12 @@ func (controller *LayerController) SetCursor(layer int) error {
 	return nil
 }
 
-// currentLayer returns the Layer object currently selected.
+// currentLayer 返回当前选定的图层对象。
 func (controller *LayerController) currentLayer() image.Layer {
 	return controller.Layers[(len(controller.Layers)-1)-controller.LayerIndex]
 }
 
-// setCompareMode switches the layer comparison between a single-layer comparison to an aggregated comparison.
+// setCompareMode 将单层比较与聚合比较之间的层比较进行切换。
 func (controller *LayerController) setCompareMode(compareMode CompareType) error {
 	controller.CompareMode = compareMode
 	Update()
@@ -234,7 +234,7 @@ func (controller *LayerController) setCompareMode(compareMode CompareType) error
 	return Controllers.Tree.setTreeByLayer(controller.getCompareIndexes())
 }
 
-// getCompareIndexes determines the layer boundaries to use for comparison (based on the current compare mode)
+// getCompareIndexes 确定用于比较的层边界（基于当前比较模式）
 func (controller *LayerController) getCompareIndexes() (bottomTreeStart, bottomTreeStop, topTreeStart, topTreeStop int) {
 	bottomTreeStart = controller.CompareStartIndex
 	topTreeStop = controller.LayerIndex
@@ -253,7 +253,7 @@ func (controller *LayerController) getCompareIndexes() (bottomTreeStart, bottomT
 	return bottomTreeStart, bottomTreeStop, topTreeStart, topTreeStop
 }
 
-// renderCompareBar returns the formatted string for the given layer.
+// renderCompareBar 返回给定层的格式化字符串。
 func (controller *LayerController) renderCompareBar(layerIdx int) string {
 	bottomTreeStart, bottomTreeStop, topTreeStart, topTreeStop := controller.getCompareIndexes()
 	result := "  "
@@ -268,7 +268,7 @@ func (controller *LayerController) renderCompareBar(layerIdx int) string {
 	return result
 }
 
-// Update refreshes the state objects for future rendering (currently does nothing).
+// Update 刷新状态对象以便将来进行渲染（当前不执行任何操作）。
 func (controller *LayerController) Update() error {
 	controller.ImageSize = 0
 	for idx := 0; idx < len(controller.Layers); idx++ {
@@ -277,7 +277,7 @@ func (controller *LayerController) Update() error {
 	return nil
 }
 
-// Render flushes the state objects to the screen. The layers pane reports:
+// Render 将状态对象刷新到屏幕。图层窗格报告：
 // 1. the layers of the image + metadata
 // 2. the current selected image
 func (controller *LayerController) Render() error {
@@ -318,7 +318,7 @@ func (controller *LayerController) Render() error {
 	return nil
 }
 
-// KeyHelp indicates all the possible actions a user can take while the current pane is selected.
+// KeyHelp 指示用户在选择当前窗格时可以执行的所有操作。
 func (controller *LayerController) KeyHelp() string {
 	return renderStatusOption(controller.keybindingCompareLayer[0].String(), "Show layer changes", controller.CompareMode == CompareLayer) +
 		renderStatusOption(controller.keybindingCompareAll[0].String(), "Show aggregated changes", controller.CompareMode == CompareAll)

@@ -16,7 +16,7 @@ type FilterController struct {
 	hidden    bool
 }
 
-// NewFilterController creates a new view object attached the the global [gocui] screen object.
+// NewFilterController 创建一个附加全局[gocui]屏幕对象的新视图对象。
 func NewFilterController(name string, gui *gocui.Gui) (controller *FilterController) {
 	controller = new(FilterController)
 
@@ -29,7 +29,7 @@ func NewFilterController(name string, gui *gocui.Gui) (controller *FilterControl
 	return controller
 }
 
-// Setup initializes the UI concerns within the context of a global [gocui] view object.
+// Setup 在全局[gocui]视图对象的上下文中初始化UI关注点。
 func (controller *FilterController) Setup(v *gocui.View, header *gocui.View) error {
 
 	// set controller options
@@ -51,7 +51,7 @@ func (controller *FilterController) Setup(v *gocui.View, header *gocui.View) err
 	return nil
 }
 
-// IsVisible indicates if the filter view pane is currently initialized
+// IsVisible 指示过滤器视图窗格当前是否已初始化
 func (controller *FilterController) IsVisible() bool {
 	if controller == nil {
 		return false
@@ -59,17 +59,17 @@ func (controller *FilterController) IsVisible() bool {
 	return !controller.hidden
 }
 
-// CursorDown moves the cursor down in the filter pane (currently indicates nothing).
+// CursorDown 在过滤器窗格中向下移动光标（当前不指示任何内容）。
 func (controller *FilterController) CursorDown() error {
 	return nil
 }
 
-// CursorUp moves the cursor up in the filter pane (currently indicates nothing).
+// CursorUp 将光标向上移动到筛选器窗格中（当前不指示任何内容）。
 func (controller *FilterController) CursorUp() error {
 	return nil
 }
 
-// Edit intercepts the key press events in the filer view to update the file view in real time.
+// Edit 拦截文件管理器视图中的按键事件，以实时更新文件视图。
 func (controller *FilterController) Edit(v *gocui.View, key gocui.Key, ch rune, mod gocui.Modifier) {
 	if !controller.IsVisible() {
 		return
@@ -92,12 +92,12 @@ func (controller *FilterController) Edit(v *gocui.View, key gocui.Key, ch rune, 
 	}
 }
 
-// Update refreshes the state objects for future rendering (currently does nothing).
+// Update 刷新状态对象以供将来渲染（当前不执行任何操作）。
 func (controller *FilterController) Update() error {
 	return nil
 }
 
-// Render flushes the state objects to the screen. Currently this is the users path filter input.
+// Render 将状态对象刷新到屏幕。当前这是用户路径筛选器输入。
 func (controller *FilterController) Render() error {
 	controller.gui.Update(func(g *gocui.Gui) error {
 		// render the header
@@ -108,7 +108,7 @@ func (controller *FilterController) Render() error {
 	return nil
 }
 
-// KeyHelp indicates all the possible actions a user can take while the current pane is selected.
+// KeyHelp 指示选择当前窗格时用户可以采取的所有可能操作。
 func (controller *FilterController) KeyHelp() string {
 	return Formatting.StatusControlNormal("▏Type to filter the file tree ")
 }

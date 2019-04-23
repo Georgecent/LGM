@@ -20,7 +20,7 @@ const (
 	collapsedItem        = "⊕ "
 )
 
-// NewFileTree creates an empty FileTree
+// NewFileTree 创建一个空的FileTree
 func NewFileTree() (tree *FileTree) {
 	tree = new(FileTree)
 	tree.Size = 0
@@ -44,9 +44,7 @@ func (tree *FileTree) AddPath(path string, data FileInfo) (*FileNode, []*FileNod
 		if node.Children[name] != nil {
 			node = node.Children[name]
 		} else {
-			// don't attach the payload. The payload is destined for the
-			// Path's end node, not any intermediary node.
-			//fmt.Printf("In AddPath TreeSize: %d\n", node.Tree.Size)
+			// 不要附加有效载荷。 有效负载的目的地是Path的终端节点，而不是任何中间节点。
 			node = node.AddChild(name, FileInfo{})
 			addedNodes = append(addedNodes, node)
 
@@ -76,13 +74,13 @@ func (node *FileNode) IsLeaf() bool {
 	return len(node.Children) == 0
 }
 
-// VisitDepthChildFirst iterates the given tree depth-first, evaluating the deepest depths first (visit on bubble up)
+// VisitDepthChildFirst 深度优先迭代给定的树，首先评估最深的深度（冒泡访问）
 // 访问者模式
 func (tree *FileTree) VisitDepthChildFirst(visitor Visitor, evaluator VisitEvaluator) error {
 	return tree.Root.VisitDepthChildFirst(visitor, evaluator)
 }
 
-// VisitDepthParentFirst iterates the given tree depth-first, evaluating the shallowest depths first (visit while sinking down)
+// VisitDepthParentFirst 深度优先迭代给定的树，首先评估最浅的深度（下沉时访问）
 func (tree *FileTree) VisitDepthParentFirst(visitor Visitor, evaluator VisitEvaluator) error {
 	return tree.Root.VisitDepthParentFirst(visitor, evaluator)
 }
@@ -92,8 +90,7 @@ func (tree *FileTree) StringBetween(start, stop int, showAttributes bool) string
 	return tree.renderStringTreeBetween(start, stop, showAttributes)
 }
 
-// renderParams is a representation of a FileNode in the context of the greater tree. All
-// data stored is necessary for rendering a single line in a tree format.
+// renderParams是更大树的上下文中的FileNode的表示。 存储的所有数据对于以树格式呈现单行是必需的。
 type renderParams struct {
 	node          *FileNode
 	spaces        []bool
@@ -102,10 +99,9 @@ type renderParams struct {
 	isLast        bool
 }
 
-// renderStringTreeBetween returns a string representing the given tree between the given rows. Since each node
-// is rendered on its own line, the returned string shows the visible nodes not affected by a collapsed parent.
+// renderStringTreeBetween 返回表示给定行之间给定树的字符串。 由于每个节点都在其自己的行上呈现，因此返回的字符串显示不受折叠父级影响的可见节点。
 func (tree *FileTree) renderStringTreeBetween(startRow, stopRow int, showAttributes bool) string {
-	// generate a list of nodes to render
+	// generate a list of nodes to render(生成要渲染的节点列表)
 	var params = make([]renderParams, 0)
 	var result string
 
@@ -116,12 +112,12 @@ func (tree *FileTree) renderStringTreeBetween(startRow, stopRow int, showAttribu
 		var currentParams renderParams
 		currentParams, paramsToVisit = paramsToVisit[0], paramsToVisit[1:]
 
-		// take note of the next nodes to visit later
+		// 记下稍后要访问的下一个node
 		var keys []string
 		for key := range currentParams.node.Children {
 			keys = append(keys, key)
 		}
-		// we should always visit nodes in order
+		// 按顺序访问nodes
 		sort.Strings(keys)
 
 		var childParams = make([]renderParams, 0)
@@ -249,7 +245,7 @@ func StackTreeRange(trees []*FileTree, start, stop int) *FileTree {
 	return tree
 }
 
-// RemovePath removes a node from the tree given its path.
+// RemovePath 在给定其路径的情况下从树中删除节点。
 func (tree *FileTree) RemovePath(path string) error {
 	node, err := tree.GetNode(path)
 	if err != nil {
@@ -282,7 +278,7 @@ type compareMark struct {
 	final     DiffType
 }
 
-// CompareAndMark marks the FileNodes in the owning (lower) tree with DiffType annotations when compared to the given (upper) tree.
+// CompareAndMark 与给定（上部）树进行比较时，使用DiffType注释标记拥有（下部）树中的FileNodes。
 func (tree *FileTree) CompareAndMark(upper *FileTree) error {
 	// 总是比较原始的，未改变的树。
 	originalTree := tree
@@ -313,20 +309,20 @@ func (tree *FileTree) CompareAndMark(upper *FileTree) error {
 			return nil
 		}
 
-		// the file exists in the lower layer
+		// 该文件存在于较低layer
 		lowerNode, _ := tree.GetNode(upperNode.Path())
 		diffType := lowerNode.compare(upperNode)
 		modifications = append(modifications, compareMark{lowerNode: lowerNode, upperNode: upperNode, tentative: diffType, final: -1})
 
 		return nil
 	}
-	// we must visit from the leaves upwards to ensure that diff types can be derived from and assigned to children
+	// 我们必须从叶子向上访问，以确保可以从子项中派生和分配差异类型
 	err := upper.VisitDepthChildFirst(graft, nil)
 	if err != nil {
 		return err
 	}
 
-	// take note of the comparison results on each note in the owning tree.
+	// 注意所属树中每个注释的比较结果。
 	for _, pair := range modifications {
 		if pair.final > 0 {
 			pair.lowerNode.AssignDiffType(pair.final)
@@ -334,13 +330,13 @@ func (tree *FileTree) CompareAndMark(upper *FileTree) error {
 			pair.lowerNode.deriveDiffType(pair.tentative)
 		}
 
-		// persist the upper's payload on the owning tree
+		// 在拥有的树上保持上层的有效负载
 		pair.lowerNode.Data.FileInfo = *pair.upperNode.Data.FileInfo.Copy()
 	}
 	return nil
 }
 
-// markRemoved annotates the FileNode at the given path as Removed.
+// markRemoved 将给定路径处的filenode注释为已删除。
 func (tree *FileTree) markRemoved(path string) error {
 	node, err := tree.GetNode(path)
 	if err != nil {

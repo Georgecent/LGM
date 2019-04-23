@@ -32,7 +32,6 @@ type FileTreeViewModel struct {
 	mainBuf bytes.Buffer
 }
 
-// NewFileTreeController creates a new view object attached the the global [gocui] screen object.
 func NewFileTreeViewModel(tree *filetree.FileTree, refTrees []*filetree.FileTree, cache filetree.TreeCache) (treeViewModel *FileTreeViewModel) {
 	treeViewModel = new(FileTreeViewModel)
 
@@ -63,13 +62,13 @@ func NewFileTreeViewModel(tree *filetree.FileTree, refTrees []*filetree.FileTree
 	return treeViewModel
 }
 
-// Setup initializes the UI concerns within the context of a global [gocui] view object.
+// Setup 在全局[gocui]视图对象的上下文中初始化UI关注点。
 func (vm *FileTreeViewModel) Setup(lowerBound, height int) {
 	vm.bufferIndexLowerBound = lowerBound
 	vm.refHeight = height
 }
 
-// height returns the current height and considers the header
+// height 返回当前高度并考虑标题
 func (vm *FileTreeViewModel) height() int {
 	if vm.ShowAttributes {
 		return vm.refHeight - 1
@@ -77,12 +76,12 @@ func (vm *FileTreeViewModel) height() int {
 	return vm.refHeight
 }
 
-// bufferIndexUpperBound returns the current upper bounds for the view
+// bufferIndexUpperBound 返回视图的当前上限
 func (vm *FileTreeViewModel) bufferIndexUpperBound() int {
 	return vm.bufferIndexLowerBound + vm.height()
 }
 
-// IsVisible indicates if the file tree view pane is currently initialized
+// IsVisible 指示文件树视图窗格当前是否已初始化
 func (vm *FileTreeViewModel) IsVisible() bool {
 	if vm == nil {
 		return false
@@ -90,14 +89,14 @@ func (vm *FileTreeViewModel) IsVisible() bool {
 	return true
 }
 
-// resetCursor moves the cursor back to the top of the buffer and translates to the top of the buffer.
+// resetCursor 将光标移回缓冲区的顶部并转换为缓冲区的顶部。
 func (vm *FileTreeViewModel) resetCursor() {
 	vm.TreeIndex = 0
 	vm.bufferIndex = 0
 	vm.bufferIndexLowerBound = 0
 }
 
-// setTreeByLayer populates the view model by stacking the indicated image layer file trees.
+// setTreeByLayer 通过堆叠指示的图像层文件树来填充视图模型。
 func (vm *FileTreeViewModel) setTreeByLayer(bottomTreeStart, bottomTreeStop, topTreeStart, topTreeStop int) error {
 	if topTreeStop > len(vm.RefTrees)-1 {
 		return fmt.Errorf("invalid layer index given: %d of %d", topTreeStop, len(vm.RefTrees)-1)
@@ -122,7 +121,7 @@ func (vm *FileTreeViewModel) setTreeByLayer(bottomTreeStart, bottomTreeStop, top
 	return nil
 }
 
-// doCursorUp performs the internal view's buffer adjustments on cursor up. Note: this is independent of the gocui buffer.
+// doCursorUp 在光标上执行内部视图的缓冲区调整。 注意：这与gocui缓冲区无关。
 func (vm *FileTreeViewModel) CursorUp() bool {
 	if vm.TreeIndex <= 0 {
 		return false
@@ -137,7 +136,7 @@ func (vm *FileTreeViewModel) CursorUp() bool {
 	return true
 }
 
-// doCursorDown performs the internal view's buffer adjustments on cursor down. Note: this is independent of the gocui buffer.
+// doCursorDown 在光标向下执行内部视图的缓冲区调整。 注意：这与gocui缓冲区无关。
 func (vm *FileTreeViewModel) CursorDown() bool {
 	if vm.TreeIndex >= vm.ModelTree.VisibleSize() {
 		return false
@@ -153,7 +152,7 @@ func (vm *FileTreeViewModel) CursorDown() bool {
 	return true
 }
 
-// CursorLeft moves the cursor up until we reach the Parent Node or top of the tree
+// CursorLeft 将光标向上移动，直到我们到达父节点或树的顶部
 func (vm *FileTreeViewModel) CursorLeft(filterRegex *regexp.Regexp) error {
 	var visitor func(*filetree.FileNode) error
 	var evaluator func(*filetree.FileNode) bool
@@ -204,7 +203,7 @@ func (vm *FileTreeViewModel) CursorLeft(filterRegex *regexp.Regexp) error {
 	return nil
 }
 
-// CursorRight descends into directory expanding it if needed
+// CursorRight 如果需要，可以进入扩展目录的目录
 func (vm *FileTreeViewModel) CursorRight(filterRegex *regexp.Regexp) error {
 	node := vm.getAbsPositionNode(filterRegex)
 	if node == nil {
@@ -236,7 +235,7 @@ func (vm *FileTreeViewModel) CursorRight(filterRegex *regexp.Regexp) error {
 	return nil
 }
 
-// PageDown moves to next page putting the cursor on top
+// PageDown 移动到下一页，将光标置于顶部
 func (vm *FileTreeViewModel) PageDown() error {
 	nextBufferIndexLowerBound := vm.bufferIndexLowerBound + vm.height()
 	nextBufferIndexUpperBound := nextBufferIndexLowerBound + vm.height()
@@ -262,7 +261,7 @@ func (vm *FileTreeViewModel) PageDown() error {
 	return nil
 }
 
-// PageUp moves to previous page putting the cursor on top
+// PageUp 移动到上一页，将光标置于顶部
 func (vm *FileTreeViewModel) PageUp() error {
 	nextBufferIndexLowerBound := vm.bufferIndexLowerBound - vm.height()
 	nextBufferIndexUpperBound := nextBufferIndexLowerBound + vm.height()
@@ -287,7 +286,7 @@ func (vm *FileTreeViewModel) PageUp() error {
 	return nil
 }
 
-// getAbsPositionNode determines the selected screen cursor's location in the file tree, returning the selected FileNode.
+// getAbsPositionNode 确定所选屏幕光标在文件树中的位置，返回所选的FileNode。
 func (vm *FileTreeViewModel) getAbsPositionNode(filterRegex *regexp.Regexp) (node *filetree.FileNode) {
 	var visitor func(*filetree.FileNode) error
 	var evaluator func(*filetree.FileNode) bool
@@ -318,7 +317,7 @@ func (vm *FileTreeViewModel) getAbsPositionNode(filterRegex *regexp.Regexp) (nod
 	return node
 }
 
-// toggleCollapse will collapse/expand the selected FileNode.
+// toggleCollapse 将折叠/展开选定的FileNode。
 func (vm *FileTreeViewModel) toggleCollapse(filterRegex *regexp.Regexp) error {
 	node := vm.getAbsPositionNode(filterRegex)
 	if node != nil && node.Data.FileInfo.IsDir {
@@ -327,7 +326,7 @@ func (vm *FileTreeViewModel) toggleCollapse(filterRegex *regexp.Regexp) error {
 	return nil
 }
 
-// toggleCollapseAll will collapse/expand the all directories.
+// toggleCollapseAll 将折叠/展开所有目录。
 func (vm *FileTreeViewModel) toggleCollapseAll() error {
 	vm.CollapseAll = !vm.CollapseAll
 
@@ -348,20 +347,20 @@ func (vm *FileTreeViewModel) toggleCollapseAll() error {
 	return nil
 }
 
-// toggleCollapse will collapse/expand the selected FileNode.
+// toggleCollapse 将折叠/展开选定的FileNode。
 func (vm *FileTreeViewModel) toggleAttributes() error {
 	vm.ShowAttributes = !vm.ShowAttributes
 	return nil
 }
 
-// toggleShowDiffType will show/hide the selected DiffType in the filetree pane.
+// toggleShowDiffType 将在filetree窗格中显示/隐藏选定的DiffType。
 func (vm *FileTreeViewModel) toggleShowDiffType(diffType filetree.DiffType) error {
 	vm.HiddenDiffTypes[diffType] = !vm.HiddenDiffTypes[diffType]
 
 	return nil
 }
 
-// Update refreshes the state objects for future rendering.
+// Update 刷新状态对象以供将来呈现。
 func (vm *FileTreeViewModel) Update(filterRegex *regexp.Regexp, width, height int) error {
 	vm.refWidth = width
 	vm.refHeight = height
@@ -406,7 +405,7 @@ func (vm *FileTreeViewModel) Update(filterRegex *regexp.Regexp, width, height in
 	return nil
 }
 
-// Render flushes the state objects (file tree) to the pane.
+// Render 将状态对象（文件树）刷新到窗格。
 func (vm *FileTreeViewModel) Render() error {
 	treeString := vm.ViewTree.StringBetween(vm.bufferIndexLowerBound, vm.bufferIndexUpperBound(), vm.ShowAttributes)
 	lines := strings.Split(treeString, "\n")

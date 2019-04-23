@@ -31,7 +31,7 @@ type FileTreeController struct {
 	keybindingPageUp            []keybinding.Key
 }
 
-// NewFileTreeController creates a new view object attached the the global [gocui] screen object.
+// NewFileTreeController 创建一个附加全局[gocui]屏幕对象的新视图对象。
 func NewFileTreeController(name string, gui *gocui.Gui, tree *filetree.FileTree, refTrees []*filetree.FileTree, cache filetree.TreeCache) (controller *FileTreeController) {
 	controller = new(FileTreeController)
 
@@ -89,7 +89,7 @@ func NewFileTreeController(name string, gui *gocui.Gui, tree *filetree.FileTree,
 	return controller
 }
 
-// Setup initializes the UI concerns within the context of a global [gocui] view object.
+// Setup 在全局[gocui]视图对象的上下文中初始化UI关注点。
 func (controller *FileTreeController) Setup(v *gocui.View, header *gocui.View) error {
 
 	// set controller options
@@ -171,7 +171,7 @@ func (controller *FileTreeController) Setup(v *gocui.View, header *gocui.View) e
 	return nil
 }
 
-// IsVisible indicates if the file tree view pane is currently initialized
+// IsVisible 指示文件树视图窗格当前是否已初始化
 func (controller *FileTreeController) IsVisible() bool {
 	if controller == nil {
 		return false
@@ -179,13 +179,13 @@ func (controller *FileTreeController) IsVisible() bool {
 	return true
 }
 
-// resetCursor moves the cursor back to the top of the buffer and translates to the top of the buffer.
+// resetCursor 将光标移回缓冲区的顶部并转换为缓冲区的顶部。
 func (controller *FileTreeController) resetCursor() {
 	controller.view.SetCursor(0, 0)
 	controller.vm.resetCursor()
 }
 
-// setTreeByLayer populates the view model by stacking the indicated image layer file trees.
+// setTreeByLayer 通过堆叠指示的图像层文件树来填充视图模型。
 func (controller *FileTreeController) setTreeByLayer(bottomTreeStart, bottomTreeStop, topTreeStart, topTreeStop int) error {
 	err := controller.vm.setTreeByLayer(bottomTreeStart, bottomTreeStop, topTreeStart, topTreeStop)
 	if err != nil {
@@ -197,10 +197,9 @@ func (controller *FileTreeController) setTreeByLayer(bottomTreeStart, bottomTree
 	return controller.Render()
 }
 
-// CursorDown moves the cursor down and renders the view.
-// Note: we cannot use the gocui buffer since any state change requires writing the entire tree to the buffer.
-// Instead we are keeping an upper and lower bounds of the tree string to render and only flushing
-// this range into the view buffer. This is much faster when tree sizes are large.
+// CursorDown 向下移动光标并呈现视图。
+// 注意：我们不能使用gocui缓冲区，因为任何状态更改都需要将整个树写入缓冲区。
+// 相反，我们保持树形字符串的上限和下限以进行渲染，并且仅将此范围刷新到视图缓冲区中。 当树大小很大时，这会快得多。
 func (controller *FileTreeController) CursorDown() error {
 	if controller.vm.CursorDown() {
 		return controller.Render()
@@ -208,10 +207,9 @@ func (controller *FileTreeController) CursorDown() error {
 	return nil
 }
 
-// CursorUp moves the cursor up and renders the view.
-// Note: we cannot use the gocui buffer since any state change requires writing the entire tree to the buffer.
-// Instead we are keeping an upper and lower bounds of the tree string to render and only flushing
-// this range into the view buffer. This is much faster when tree sizes are large.
+// CursorUp 向上移动光标并呈现视图。
+// 注意：我们不能使用gocui缓冲区，因为任何状态更改都需要将整个树写入缓冲区。
+// 相反，我们保持树形字符串的上限和下限以进行渲染，并且仅将此范围刷新到视图缓冲区中。 当树大小很大时，这会快得多。
 func (controller *FileTreeController) CursorUp() error {
 	if controller.vm.CursorUp() {
 		return controller.Render()
@@ -219,7 +217,7 @@ func (controller *FileTreeController) CursorUp() error {
 	return nil
 }
 
-// CursorLeft moves the cursor up until we reach the Parent Node or top of the tree
+// CursorLeft 将光标向上移动，直到我们到达父节点或树的顶部
 func (controller *FileTreeController) CursorLeft() error {
 	err := controller.vm.CursorLeft(filterRegex())
 	if err != nil {
@@ -229,7 +227,7 @@ func (controller *FileTreeController) CursorLeft() error {
 	return controller.Render()
 }
 
-// CursorRight descends into directory expanding it if needed
+// CursorRight 如果需要，可以进入扩展目录的目录
 func (controller *FileTreeController) CursorRight() error {
 	err := controller.vm.CursorRight(filterRegex())
 	if err != nil {
@@ -239,7 +237,7 @@ func (controller *FileTreeController) CursorRight() error {
 	return controller.Render()
 }
 
-// PageDown moves to next page putting the cursor on top
+// PageDown 移动到下一页，将光标置于顶部
 func (controller *FileTreeController) PageDown() error {
 	err := controller.vm.PageDown()
 	if err != nil {
@@ -248,7 +246,7 @@ func (controller *FileTreeController) PageDown() error {
 	return controller.Render()
 }
 
-// PageUp moves to previous page putting the cursor on top
+// PageUp 移动到上一页，将光标置于顶部
 func (controller *FileTreeController) PageUp() error {
 	err := controller.vm.PageUp()
 	if err != nil {
@@ -257,12 +255,12 @@ func (controller *FileTreeController) PageUp() error {
 	return controller.Render()
 }
 
-// getAbsPositionNode determines the selected screen cursor's location in the file tree, returning the selected FileNode.
+// getAbsPositionNode 确定所选屏幕光标在文件树中的位置，返回所选的FileNode。
 func (controller *FileTreeController) getAbsPositionNode() (node *filetree.FileNode) {
 	return controller.vm.getAbsPositionNode(filterRegex())
 }
 
-// toggleCollapse will collapse/expand the selected FileNode.
+// toggleCollapse 将折叠/展开选定的FileNode。
 func (controller *FileTreeController) toggleCollapse() error {
 	err := controller.vm.toggleCollapse(filterRegex())
 	if err != nil {
@@ -272,7 +270,7 @@ func (controller *FileTreeController) toggleCollapse() error {
 	return controller.Render()
 }
 
-// toggleCollapseAll will collapse/expand the all directories.
+// toggleCollapseAll 将折叠/展开所有目录。
 func (controller *FileTreeController) toggleCollapseAll() error {
 	err := controller.vm.toggleCollapseAll()
 	if err != nil {
@@ -282,7 +280,7 @@ func (controller *FileTreeController) toggleCollapseAll() error {
 	return controller.Render()
 }
 
-// toggleAttributes will show/hide file attributes
+// toggleAttributes 将显示/隐藏文件属性
 func (controller *FileTreeController) toggleAttributes() error {
 	err := controller.vm.toggleAttributes()
 	if err != nil {
@@ -294,7 +292,7 @@ func (controller *FileTreeController) toggleAttributes() error {
 	return nil
 }
 
-// toggleShowDiffType will show/hide the selected DiffType in the filetree pane.
+// toggleShowDiffType 将在filetree窗格中显示/隐藏选定的DiffType。
 func (controller *FileTreeController) toggleShowDiffType(diffType filetree.DiffType) error {
 	controller.vm.toggleShowDiffType(diffType)
 	// we need to render the changes to the status pane as well
@@ -303,7 +301,7 @@ func (controller *FileTreeController) toggleShowDiffType(diffType filetree.DiffT
 	return nil
 }
 
-// onLayoutChange is called by the UI framework to inform the view-model of the new screen dimensions
+// onLayoutChange UI框架调用onLayoutChange以通知视图模型新的屏幕尺寸
 func (controller *FileTreeController) onLayoutChange() error {
 	controller.Update()
 	return controller.Render()
@@ -341,7 +339,7 @@ func (controller *FileTreeController) Update() error {
 	return controller.vm.Update(filterRegex(), width, height-1)
 }
 
-// Render flushes the state objects (file tree) to the pane.
+// Render 将状态对象（文件树）刷新到窗格。
 func (controller *FileTreeController) Render() error {
 	title := "Current Layer Contents"
 	if Controllers.Layer.CompareMode == CompareAll {
@@ -374,7 +372,7 @@ func (controller *FileTreeController) Render() error {
 	return nil
 }
 
-// KeyHelp indicates all the possible actions a user can take while the current pane is selected.
+// KeyHelp 指示用户在选择当前窗格时可以执行的所有操作。
 func (controller *FileTreeController) KeyHelp() string {
 	return renderStatusOption(controller.keybindingToggleCollapse[0].String(), "Collapse dir", false) +
 		renderStatusOption(controller.keybindingToggleCollapseAll[0].String(), "Collapse all dir", false) +

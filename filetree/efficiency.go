@@ -21,7 +21,7 @@ func (efs EfficiencySlice) Less(i, j int) bool {
 	return efs[i].CumulativeSize < efs[j].CumulativeSize
 }
 
-// Efficiency returns the score and file set of the given set of FileTrees (layers). This is loosely based on:
+// Efficiency 返回给定文件树集（层）的分数和文件集。这大致基于：
 // 1. 跨层重复的文件会折扣您的分数，按文件大小加权
 // 2. 删除的文件会折扣您的分数，并按原始文件大小加权
 func Efficiency(trees []*FileTree) (float64, EfficiencySlice) {
@@ -87,7 +87,7 @@ func Efficiency(trees []*FileTree) (float64, EfficiencySlice) {
 		}
 	}
 
-	// calculate the score
+	// 计算分数
 	var minimumPathSizes int64
 	var discoveredPathSizes int64
 

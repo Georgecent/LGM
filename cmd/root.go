@@ -34,7 +34,7 @@ var exportFile string
 var ciConfigFile string
 
 
-// rootCmd represents the base command when called without any subcommands
+// rootCmd 表示在没有任何子命令的情况下调用时的基命令
 var rootCmd = &cobra.Command{
 	Use:   "LGM [IMAGE]",
 	Short: "Docker Image Visualizer & Explorer",
@@ -46,7 +46,7 @@ It is mainly used to mine Docker images, analyze layer content, and help reduce 
 	Run:  doAnalyzeCmd,
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
+// Execute 将所有子命令添加到根命令并适当设置标志。
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {

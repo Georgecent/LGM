@@ -15,10 +15,8 @@ import (
 
 const debug = false
 
-// var profileObj = profile.Start(profile.MemProfile, profile.ProfilePath("."), profile.NoShutdownHook)
-// var onExit func()
 
-// debugPrint writes the given string to the debug pane (if the debug pane is enabled)
+// debugPrint 将给定的字符串写入调试窗格（如果启用了调试窗格）
 func debugPrint(s string) {
 	if debug && Controllers.Tree != nil && Controllers.Tree.gui != nil {
 		v, _ := Controllers.Tree.gui.View("debug")
@@ -32,7 +30,7 @@ func debugPrint(s string) {
 }
 
 
-// Formatting defines standard functions for formatting UI sections.
+// Formatting 定义用于设置UI节格式的标准函数。
 var Formatting struct {
 	// 具有0个方法的接口称为空接口。它表示为interface{}。由于空接口有0个方法，所有类型都实现了空接口。
 	Header                func(...interface{}) string
@@ -74,7 +72,7 @@ type View interface {
 	IsVisible() bool
 }
 
-// toggleView switches between the file view and the layer view and re-renders the screen.
+// toggleView 在file view和layer view之间切换并重新渲染屏幕。
 func toggleView(g *gocui.Gui, v *gocui.View) (err error) {
 	if v == nil || v.Name() == Controllers.Layer.Name {
 		_, err = g.SetCurrentView(Controllers.Tree.Name)
@@ -86,7 +84,7 @@ func toggleView(g *gocui.Gui, v *gocui.View) (err error) {
 	return err
 }
 
-// toggleFilterView shows/hides the file tree filter pane.
+// toggleFilterView 显示/隐藏文件树筛选器窗格。
 func toggleFilterView(g *gocui.Gui, v *gocui.View) error {
 	// delete all user input from the tree view
 	Controllers.Filter.view.Clear()
@@ -119,7 +117,7 @@ func CursorUp(g *gocui.Gui, v *gocui.View) error {
 	return CursorStep(g, v, -1)
 }
 
-// quit is the gocui callback invoked when the user hits Ctrl+C
+// quit是当用户点击 Ctrl+C 时调用的gocui回调
 func quit(g *gocui.Gui, v *gocui.View) error {
 
 	// profileObj.Stop()
@@ -128,7 +126,7 @@ func quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
 }
 
-// keyBindings registers global key press actions, valid when in any pane.
+// keyBindings 注册全局按键操作，在任何窗格中有效。
 func keyBindings(g *gocui.Gui) error {
 	for _, key := range GlobalKeybindings.quit {
 		if err := g.SetKeybinding("", key.Value, key.Modifier, quit); err != nil {
@@ -151,7 +149,7 @@ func keyBindings(g *gocui.Gui) error {
 	return nil
 }
 
-// isNewView determines if a view has already been created based on the set of errors given (a bit hokie)
+// isNewView 确定是否已根据给定的一组错误（有点矫揉造作）创建视图
 func isNewView(errs ...error) bool {
 	for _, err := range errs {
 		if err == nil {
@@ -164,8 +162,7 @@ func isNewView(errs ...error) bool {
 	return true
 }
 
-// layout defines the definition of the window pane size and placement relations to one another. This
-// is invoked at application start and whenever the screen dimensions change.
+// layout 定义窗口窗格大小的定义以及彼此之间的位置关系。这在应用程序启动时以及屏幕尺寸更改时调用。
 func layout(g *gocui.Gui) error {
 	// TODO: this logic should be refactored into an abstraction that takes care of the math for us
 
@@ -261,14 +258,14 @@ func layout(g *gocui.Gui) error {
 	return nil
 }
 
-// Update refreshes the state objects for future rendering.
+// Update 刷新状态对象以便将来进行渲染。
 func Update() {
 	for _, view := range Controllers.lookup {
 		view.Update()
 	}
 }
 
-// Render flushes the state objects to the screen.
+// Render 将状态对象刷新到屏幕。
 func Render() {
 	for _, view := range Controllers.lookup {
 		if view.IsVisible() {
@@ -277,7 +274,7 @@ func Render() {
 	}
 }
 
-// renderStatusOption formats key help bindings-to-title pairs.
+// renderStatusOption 将键帮助绑定格式化为标题对。
 func renderStatusOption(control, title string, selected bool) string {
 	if selected {
 		return Formatting.StatusSelected("▏") + Formatting.StatusControlSelected(control) + Formatting.StatusSelected(" "+title+" ")
@@ -336,14 +333,8 @@ func Run(analysis *image.AnalysisResult, cache filetree.TreeCache) {
 	Controllers.lookup[Controllers.Details.Name] = Controllers.Details
 
 	g.Cursor = false
-	//g.Mouse = true
-	g.SetManagerFunc(layout)
 
-	// var profileObj = profile.Start(profile.CPUProfile, profile.ProfilePath("."), profile.NoShutdownHook)
-	//
-	// onExit = func() {
-	// 	profileObj.Stop()
-	// }
+	g.SetManagerFunc(layout)
 
 	// perform the first update and render now that all resources have been loaded
 	Update()

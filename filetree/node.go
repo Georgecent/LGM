@@ -23,12 +23,12 @@ var diffTypeColor = map[DiffType]*color.Color{
 }
 
 
-// IsWhiteout returns an indication if this file may be a overlay-whiteout file.
+// IsWhiteout 返回此文件是否可能是overlay-whiteout文件。
 func (node *FileNode) IsWhiteout() bool {
 	return strings.HasPrefix(node.Name, whiteoutPrefix)
 }
 
-// NewNode creates a new FileNode relative to the given parent node with a payload.
+// NewNode 使用有效负载创建相对于给定父节点的新FileNode。
 func NewNode(parent *FileNode, name string, data FileInfo) (node *FileNode)  {
 	node = new(FileNode)
 	node.Name = name
@@ -43,7 +43,7 @@ func NewNode(parent *FileNode, name string, data FileInfo) (node *FileNode)  {
 	return node
 }
 
-// String shows the filename formatted into the proper color (by DiffType), additionally indicating if it is a symlink.
+// String 显示格式化为正确颜色的文件名（通过DiffType），另外指示它是否是符号链接。
 func (node *FileNode) String() string {
 	var display string
 	if node == nil {
@@ -57,7 +57,7 @@ func (node *FileNode) String() string {
 	return diffTypeColor[node.Data.DiffType].Sprint(display)
 }
 
-// renderTreeLine returns a string representing this FileNode in the context of a greater ASCII tree.
+// renderTreeLine 在更大的ASCII树的上下文中返回表示此FileNode的字符串。
 func (node *FileNode) renderTreeLine(spaces []bool, last bool, collapsed bool) string {
 	var otherBranches string
 	for _, space := range spaces {
@@ -81,7 +81,7 @@ func (node *FileNode) renderTreeLine(spaces []bool, last bool, collapsed bool) s
 	return otherBranches + thisBranch + collapsedIndicator + node.String() + newLine
 }
 
-// AddChild creates a new node relative to the current FileNode.
+// AddChild 创建一个相对于当前FileNode的新节点。
 func (node *FileNode) AddChild(name string, data FileInfo) (child *FileNode)  {
 	// never allow processing of purely whiteout flag files (for now)
 	if strings.HasPrefix(name, doubleWhiteoutPrefix) {
@@ -101,7 +101,7 @@ func (node *FileNode) AddChild(name string, data FileInfo) (child *FileNode)  {
 	return child
 }
 
-// Copy duplicates the existing node relative to a new parent node.
+// Copy 相对于新父节点复制现有节点。
 func (node *FileNode) Copy(parent *FileNode) *FileNode {
 	newNode := NewNode(parent, node.Name, node.Data.FileInfo)
 	newNode.Data.ViewInfo = node.Data.ViewInfo
@@ -113,7 +113,7 @@ func (node *FileNode) Copy(parent *FileNode) *FileNode {
 	return newNode
 }
 
-// VisitDepthChildFirst iterates a tree depth-first (starting at this FileNode), evaluating the deepest depths first (visit on bubble up)
+// VisitDepthChildFirst 深度优先迭代树（从此FileNode开始），首先评估最深的深度（冒泡访问）
 func (node *FileNode) VisitDepthChildFirst(visitor Visitor, evaluator VisitEvaluator) error {
 	var keys []string
 	for key := range node.Children{
@@ -136,7 +136,7 @@ func (node *FileNode) VisitDepthChildFirst(visitor Visitor, evaluator VisitEvalu
 	return nil
 }
 
-// VisitDepthParentFirst iterates a tree depth-first (starting at this FileNode), evaluating the shallowest depths first (visit while sinking down)
+// VisitDepthParentFirst 深度优先迭代树（从此FileNode开始），首先评估最浅的深度（下沉时访问）
 func (node *FileNode) VisitDepthParentFirst(visitor Visitor, evaluator VisitEvaluator) error {
 	var err error
 
@@ -193,7 +193,7 @@ func (node *FileNode) Path() string {
 	return strings.Replace(node.path, "//", "/", -1)
 }
 
-// Remove deletes the current FileNode from it's parent FileNode's relations.
+// Remove 从它的父FileNode的关系中删除当前的FileNode。
 func (node *FileNode) Remove() error {
 	if node == node.Tree.Root {
 		return fmt.Errorf("cannot remove the tree root")
@@ -206,7 +206,7 @@ func (node *FileNode) Remove() error {
 	return nil
 }
 
-// Compare determines the DiffType between two FileInfos based on the type and contents of each given FileInfo
+// Compare 根据每个给定FileInfo的类型和内容确定两个FileInfos之间的DiffType
 func (data *FileInfo) Compare(other FileInfo) DiffType {
 	if data.TypeFlag == other.TypeFlag {
 		if data.hash == other.hash &&
@@ -219,7 +219,7 @@ func (data *FileInfo) Compare(other FileInfo) DiffType {
 	return Changed
 }
 
-// compare the current node against the given node, returning a definitive DiffType.
+// compare 针对给定节点的当前节点，返回确定的DiffType。
 func (node *FileNode) compare(other *FileNode) DiffType {
 	if node == nil && other == nil {
 		return Unchanged
@@ -264,8 +264,7 @@ func (node *FileNode) MetadataString() string {
 		sizeBytes = node.Data.FileInfo.Size
 	} else {
 		sizer := func(curNode *FileNode) error {
-			// don't include file sizes of children that have been removed (unless the node in question is a removed dir,
-			// then show the accumulated size of removed files)
+			// 不包括已删除的子项的文件大小（除非有问题的节点是已删除的目录，然后显示已删除文件的累计大小）
 			if curNode.Data.DiffType != Removed || node.Data.DiffType == Removed {
 				sizeBytes += curNode.Data.FileInfo.Size
 			}

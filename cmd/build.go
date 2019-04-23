@@ -20,7 +20,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// buildCmd represents the build command
+// buildCmd 表示生成命令
 var buildCmd = &cobra.Command{
 	Use:   "build [any valid 'docker build' arguments]",
 	Short: "Builds and analyzes a docker image from a Dockerfile (this is a thin wrapper for the 'docker build' command).",

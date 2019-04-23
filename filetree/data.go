@@ -16,7 +16,7 @@ const (
 
 var GlobalFileTreeCollapse bool
 
-// NewNodeData creates an empty NodeData struct for a FileNode
+// NewNodeData 为FileNode创建空的 NodeData 结构
 func NewNodeData() *NodeData {
 	return &NodeData{
 		ViewInfo: *NewViewInfo(),
@@ -82,7 +82,7 @@ func NewFileInfo(reader *tar.Reader, header *tar.Header, path string) FileInfo {
 	}
 }
 
-// Copy duplicates a FileInfo
+// Copy 复制文件信息
 func (data *FileInfo) Copy() *FileInfo {
 	if data == nil {
 		return nil
@@ -100,8 +100,7 @@ func (data *FileInfo) Copy() *FileInfo {
 	}
 }
 
-// merge two DiffTypes into a single result. Essentially, return the given value unless they two values differ,
-// in which case we can only determine that there is "a change".
+// merge 将两个DiffType合并为一个结果。本质上，返回给定值，除非两个值不同，在这种情况下，我们只能确定存在"change".
 func (diff DiffType) merge(other DiffType) DiffType {
 	if diff == other {
 		return diff

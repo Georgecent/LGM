@@ -20,7 +20,7 @@ type DetailsController struct {
 	inefficiencies filetree.EfficiencySlice
 }
 
-// NewDetailsController creates a new view object attached the the global [gocui] screen object.
+// NewDetailsController 创建附加到全局[gocui]屏幕对象的新视图对象。
 func NewDetailsController(name string, gui *gocui.Gui, efficiency float64, inefficiencies filetree.EfficiencySlice) (controller *DetailsController) {
 	controller = new(DetailsController)
 
@@ -33,7 +33,7 @@ func NewDetailsController(name string, gui *gocui.Gui, efficiency float64, ineff
 	return controller
 }
 
-// Setup initializes the UI concerns within the context of a global [gocui] view object.
+// Setup 在全局[gocui]视图对象的上下文中初始化UI关注点。
 func (controller *DetailsController) Setup(v *gocui.View, header *gocui.View) error {
 
 	// set controller options
@@ -59,7 +59,7 @@ func (controller *DetailsController) Setup(v *gocui.View, header *gocui.View) er
 	return controller.Render()
 }
 
-// IsVisible indicates if the details view pane is currently initialized.
+// IsVisible 指示详细信息视图窗格当前是否已初始化。
 func (controller *DetailsController) IsVisible() bool {
 	if controller == nil {
 		return false
@@ -67,26 +67,27 @@ func (controller *DetailsController) IsVisible() bool {
 	return true
 }
 
-// CursorDown moves the cursor down in the details pane (currently indicates nothing).
+// CursorDown 在“详细信息”窗格中向下移动光标（当前指示为“无”）。
 func (controller *DetailsController) CursorDown() error {
 	return CursorDown(controller.gui, controller.view)
 }
 
-// CursorUp moves the cursor up in the details pane (currently indicates nothing).
+// CursorUp 在“详细信息”窗格中向上移动光标（当前指示为“无”）。
 func (controller *DetailsController) CursorUp() error {
 	return CursorUp(controller.gui, controller.view)
 }
 
-// Update refreshes the state objects for future rendering.
+// Update 刷新状态对象以便将来进行渲染。
 func (controller *DetailsController) Update() error {
 	return nil
 }
 
-// Render flushes the state objects to the screen. The details pane reports:
-// 1. the current selected layer's command string
-// 2. the image efficiency score
-// 3. the estimated wasted image space
-// 4. a list of inefficient file allocations
+// Render 将状态对象刷新到屏幕。
+// 详细信息窗格报告：
+//	1.当前所选图层的命令字符串
+//	2.图像效率得分
+//	3.估计浪费的图像空间
+//	4.低效文件分配列表
 func (controller *DetailsController) Render() error {
 	currentLayer := Controllers.Layer.currentLayer()
 
@@ -144,7 +145,7 @@ func (controller *DetailsController) Render() error {
 	return nil
 }
 
-// KeyHelp indicates all the possible actions a user can take while the current pane is selected (currently does nothing).
+// KeyHelp 表示用户在选择当前窗格时可以执行的所有操作（当前不执行任何操作）。
 func (controller *DetailsController) KeyHelp() string {
 	return "TBD"
 }
